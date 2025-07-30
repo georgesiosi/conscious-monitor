@@ -1,0 +1,357 @@
+import SwiftUI
+import UniformTypeIdentifiers
+
+// MARK: - Report Generation View
+
+/// SwiftUI view for configuring and generating comprehensive reports
+struct ReportGenerationView: View {
+    @ObservedObject private var reportService = ReportGenerationService.shared
+    @ObservedObject private var userSettings = UserSettings.shared
+    
+    @State private var selectedDataTypes: Set<ReportDataType> = [.appUsage, .contextSwitches, .productivityMetrics]
+    @State private var selectedDateRange: DateRange = .lastWeek
+    @State private var selectedExportFormat: ReportExportFormat = .json
+    @State private var includeVisualizations = true
+    @State private var includeRecommendations = true
+    
+    @State private var showingCustomDatePicker = false
+    @State private var customStartDate = Date().addingTimeInterval(-7 * 24 * 60 * 60)
+    @State private var customEndDate = Date()
+    
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
+    @State private var alertTitle = ""
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                headerSection
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        dateRangeSection
+                        dataTypesSection
+                        optionsSection
+                        exportFormatSection
+                        
+                        if reportService.isGenerating {
+                            progressSection
+                        }
+                        
+                        generateButton
+                        
+                        if let lastReport = reportService.lastGeneratedReport {
+                            lastReportSection(lastReport)
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Generate Report")
+            .alert(alertTitle, isPresented: $showingAlert) {
+                Button("OK") { }
+            } message: {
+                Text(alertMessage)
+            }
+            .sheet(isPresented: $showingCustomDatePicker) {
+                customDatePickerSheet
+            }
+        }
+    }
+    
+    // MARK: - View Components
+    
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Comprehensive Activity Report")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            Text("Generate detailed reports with analytics, cost analysis, and AI insights")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal)
+    }
+    
+    private var dateRangeSection: some View {
+        GroupBox("Report Period") {
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach([DateRange.today, .thisWeek, .thisMonth], id: \self) { range in
+                    Button(action: { selectedDateRange = range }) {
+                        HStack {
+                            Image(systemName: selectedDateRange == range ? "checkmark.circle.fill" : "circle")
+                                .foregroundColor(selectedDateRange == range ? .blue : .secondary)
+                            Text(range.description)
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                
+                Button(action: { showingCustomDatePicker = true }) {
+                    HStack {
+                        Image(systemName: isCustomDateRange ? "checkmark.circle.fill" : "circle")
+                            .foregroundColor(isCustomDateRange ? .blue : .secondary)
+                        Text("Custom Range")
+                        if isCustomDateRange {
+                            Text("(\(customStartDate.formatted(date: .abbreviated, time: .omitted)) - \(customEndDate.formatted(date: .abbreviated, time: .omitted)))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            .padding(.vertical, 8)
+        }
+    }
+    
+    private var dataTypesSection: some View {
+        GroupBox("Data to Include") {
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(ReportDataType.allCases, id: \self) { dataType in
+                    Toggle(isOn: Binding(
+                        get: { selectedDataTypes.contains(dataType) },
+                        set: { isSelected in
+                            if isSelected {
+                                selectedDataTypes.insert(dataType)
+                            } else {
+                                selectedDataTypes.remove(dataType)
+                            }
+                        }
+                    )) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(dataType.displayName)
+                                .font(.subheadline)
+                            Text(dataTypeDescription(dataType))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
+            .padding(.vertical, 8)
+        }
+    }
+    
+    private var optionsSection: some View {
+        GroupBox("Report Options") {
+            VStack(alignment: .leading, spacing: 12) {
+                Toggle("Include Visualizations", isOn: $includeVisualizations)
+                Toggle("Include Recommendations", isOn: $includeRecommendations)
+                
+                if selectedDataTypes.contains(.aiInsights) && userSettings.openAIAPIKey.isEmpty {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle")
+                            .foregroundColor(.orange)
+                        Text("AI Insights require OpenAI API key in Settings")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .padding(.vertical, 8)
+        }
+    }
+    
+    private var exportFormatSection: some View {
+        GroupBox("Export Format") {
+            Picker("Format", selection: $selectedExportFormat) {
+                ForEach(ReportExportFormat.allCases, id: \self) { format in
+                    Text(format.displayName).tag(format)
+                }
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .padding(.vertical, 8)
+        }
+    }
+    
+    private var progressSection: some View {
+        GroupBox("Generation Progress") {
+            VStack(alignment: .leading, spacing: 12) {
+                ProgressView(value: reportService.generationProgress)
+                    .progressViewStyle(LinearProgressViewStyle())
+                
+                Text(reportService.currentTask)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Text("\(Int(reportService.generationProgress * 100))% Complete")
+                    .font(.caption)
+                    .foregroundColor(.blue)
+            }
+            .padding(.vertical, 8)
+        }
+    }
+    
+    private var generateButton: some View {
+        Button(action: generateReport) {
+            HStack {
+                if reportService.isGenerating {
+                    ProgressView()
+                        .controlSize(.small)
+                        .scaleEffect(0.8)
+                } else {
+                    Image(systemName: "doc.text.magnifyingglass")
+                }
+                Text(reportService.isGenerating ? "Generating..." : "Generate Report")
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(canGenerateReport ? Color.blue : Color.gray)
+            .foregroundColor(.white)
+            .cornerRadius(8)
+        }
+        .disabled(!canGenerateReport || reportService.isGenerating)
+    }
+    
+    private func lastReportSection(_ report: GeneratedReport) -> some View {
+        GroupBox("Last Generated Report") {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("Generated:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(report.generatedAt.formatted(date: .abbreviated, time: .shortened))
+                        .font(.caption)
+                }
+                
+                HStack {
+                    Text("Period:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(report.executiveSummary.reportPeriod)
+                        .font(.caption)
+                }
+                
+                HStack {
+                    Text("Data Points:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("\(report.metadata.totalEvents) events, \(report.metadata.totalContextSwitches) switches")
+                        .font(.caption)
+                }
+                
+                Button("Export Last Report") {
+                    exportLastReport(report)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+            }
+            .padding(.vertical, 8)
+        }
+    }
+    
+    private var customDatePickerSheet: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                DatePicker("Start Date", selection: $customStartDate, displayedComponents: .date)
+                DatePicker("End Date", selection: $customEndDate, displayedComponents: .date)
+                
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("Custom Date Range")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        showingCustomDatePicker = false
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Apply") {
+                        selectedDateRange = .custom(customStartDate, customEndDate)
+                        showingCustomDatePicker = false
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var canGenerateReport: Bool {
+        !selectedDataTypes.isEmpty && !reportService.isGenerating
+    }
+    
+    private var isCustomDateRange: Bool {
+        if case .custom = selectedDateRange {
+            return true
+        }
+        return false
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func dataTypeDescription(_ dataType: ReportDataType) -> String {
+        switch dataType {
+        case .appActivations:
+            return "App switching events and usage patterns"
+        case .contextSwitches:
+            return "Context switching analysis and productivity metrics"
+        case .aiInsights:
+            return "AI-generated insights and recommendations"
+        case .productivity:
+            return "Productivity scores and focus time analysis"
+        }
+    }
+    
+    private func generateReport() {
+        let config = ReportConfiguration(
+            dateRange: selectedDateRange,
+            dataTypes: selectedDataTypes,
+            includeVisualizations: includeVisualizations,
+            includeRecommendations: includeRecommendations
+        )
+        
+        reportService.generateReport(config: config) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let report):
+                    alertTitle = "Report Generated"
+                    alertMessage = "Successfully generated report with \(report.metadata.totalEvents) events and \(report.metadata.totalContextSwitches) context switches."
+                    showingAlert = true
+                    
+                case .failure(let error):
+                    alertTitle = "Generation Failed"
+                    alertMessage = error.localizedDescription
+                    showingAlert = true
+                }
+            }
+        }
+    }
+    
+    private func exportLastReport(_ report: GeneratedReport) {
+        reportService.exportReport(report, format: selectedExportFormat) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let url):
+                    alertTitle = "Export Successful"
+                    alertMessage = "Report exported to: \(url.lastPathComponent)"
+                    showingAlert = true
+                    
+                    // Reveal in Finder
+                    NSWorkspace.shared.selectFile(url.path, inFileViewerRootedAtPath: url.deletingLastPathComponent().path)
+                    
+                case .failure(let error):
+                    alertTitle = "Export Failed"
+                    alertMessage = error.localizedDescription
+                    showingAlert = true
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Preview
+
+struct ReportGenerationView_Previews: PreviewProvider {
+    static var previews: some View {
+        ReportGenerationView()
+    }
+}

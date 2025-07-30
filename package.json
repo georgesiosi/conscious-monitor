@@ -1,0 +1,22 @@
+{
+  "name": "@cs/focus-monitor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FocusMonitor - Behavioral tracking application for macOS",
+  "scripts": {
+    "dev": "echo 'FocusMonitor is a macOS app. Open FocusMonitor.xcodeproj in Xcode to run in development mode.'",
+    "build": "xcodebuild -project FocusMonitor.xcodeproj -scheme FocusMonitor -configuration Release -derivedDataPath build",
+    "clean": "xcodebuild -project FocusMonitor.xcodeproj -scheme FocusMonitor clean",
+    "test": "xcodebuild -project FocusMonitor.xcodeproj -scheme FocusMonitor test",
+    "lint": "echo 'Swift linting not configured. Use SwiftLint if needed.'"
+  },
+  "keywords": [
+    "macos",
+    "swift",
+    "focus",
+    "productivity",
+    "monitoring"
+  ],
+  "dependencies": {},
+  "devDependencies": {}
+}

@@ -1,0 +1,835 @@
+import SwiftUI
+import UniformTypeIdentifiers
+
+// MARK: - Generate Report View
+
+/// Comprehensive report generation interface following FocusMonitor design patterns
+/// Provides data selection, date ranges, export formats, email configuration, and consultant presets
+struct GenerateReportView: View {
+    @ObservedObject private var reportService = ReportGenerationService.shared
+    @ObservedObject private var userSettings = UserSettings.shared
+    
+    // MARK: - Data Selection State
+    @State private var selectedDataTypes: Set<ReportDataType> = [.appUsage, .contextSwitches, .productivityMetrics]
+    
+    // MARK: - Date Range State
+    @State private var selectedDateRange: DateRange = .lastWeek
+    @State private var showingCustomDatePicker = false
+    @State private var customStartDate = Date().addingTimeInterval(-7 * 24 * 60 * 60)
+    @State private var customEndDate = Date()
+    
+    // MARK: - Export Format State
+    @State private var selectedExportFormat: ReportExportFormat = .json
+    @State private var includeVisualizations = true
+    @State private var includeRecommendations = true
+    
+    // MARK: - Email Configuration State
+    @State private var enableEmailExport = false
+    @State private var recipientEmail = ""
+    @State private var emailSubject = "FocusMonitor Activity Report"
+    @State private var emailMessage = "Please find attached your activity report from FocusMonitor."
+    @State private var ccMyself = true
+    
+    // MARK: - Consultant Preset State
+    @State private var selectedConsultantPreset: ConsultantPreset? = nil
+    @State private var showingConsultantPresets = false
+    
+    // MARK: - UI State
+    @State private var showingAlert = false
+    @State private var alertTitle = ""
+    @State private var alertMessage = ""
+    @State private var showingResults = false
+    @State private var lastGenerationResult: ReportGenerationResult?
+    
+    var body: some View {
+        VStack(spacing: DesignSystem.Spacing.lg) {
+            headerSection
+            
+            ScrollView {
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.sectionSpacing) {
+                    dataSelectionSection
+                    dateRangeSection
+                    exportFormatSection
+                    
+                    if enableEmailExport {
+                        emailConfigurationSection
+                    }
+                    
+                    consultantPresetsSection
+                    
+                    if reportService.isGenerating {
+                        progressSection
+                    }
+                    
+                    generateButtonSection
+                    
+                    if showingResults, let result = lastGenerationResult {
+                        resultsSection(result)
+                    }
+                }
+                .padding(.horizontal, DesignSystem.Layout.contentPadding)
+            }
+        }
+        .navigationTitle("Generate Report")
+        .alert(alertTitle, isPresented: $showingAlert) {
+            Button("OK") { }
+        } message: {
+            Text(alertMessage)
+        }
+        .sheet(isPresented: $showingCustomDatePicker) {
+            customDatePickerSheet
+        }
+        .sheet(isPresented: $showingConsultantPresets) {
+            consultantPresetsSheet
+        }
+    }
+    
+    // MARK: - Header Section
+    
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+            Text("Comprehensive Activity Report")
+                .font(DesignSystem.Typography.title2)
+                .foregroundColor(DesignSystem.Colors.primaryText)
+            
+            Text("Generate detailed reports with analytics, cost analysis, and AI insights")
+                .font(DesignSystem.Typography.body)
+                .foregroundColor(DesignSystem.Colors.secondaryText)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, DesignSystem.Layout.contentPadding)
+        .padding(.top, DesignSystem.Layout.pageHeaderPadding)
+    }
+    
+    // MARK: - Data Selection Section
+    
+    private var dataSelectionSection: some View {
+        CardView {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                SectionHeaderView(
+                    "Data Selection",
+                    subtitle: "Choose which data types to include in your report"
+                )
+                
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                    ForEach(ReportDataType.allCases, id: \.self) { dataType in
+                        dataTypeCheckbox(dataType)
+                    }
+                }
+            }
+        }
+    }
+    
+    private func dataTypeCheckbox(_ dataType: ReportDataType) -> some View {
+        Button(action: {
+            toggleDataType(dataType)
+        }) {
+            HStack(spacing: DesignSystem.Spacing.md) {
+                Image(systemName: selectedDataTypes.contains(dataType) ? "checkmark.square.fill" : "square")
+                    .font(.system(size: DesignSystem.Layout.iconSize))
+                    .foregroundColor(selectedDataTypes.contains(dataType) ? 
+                                   DesignSystem.Colors.accent : DesignSystem.Colors.secondaryText)
+                
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                    Text(dataType.displayName)
+                        .font(DesignSystem.Typography.body)
+                        .foregroundColor(DesignSystem.Colors.primaryText)
+                    
+                    Text(dataTypeDescription(dataType))
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.secondaryText)
+                }
+                
+                Spacer()
+                
+                if dataType == .aiAnalysis && userSettings.openAIAPIKey.isEmpty {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(DesignSystem.Colors.warning)
+                        .font(.system(size: DesignSystem.Layout.smallIconSize))
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(dataType == .aiAnalysis && userSettings.openAIAPIKey.isEmpty)
+    }
+    
+    // MARK: - Date Range Section
+    
+    private var dateRangeSection: some View {
+        CardView {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                SectionHeaderView(
+                    "Date Range",
+                    subtitle: "Select the time period for your report"
+                )
+                
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                    ForEach([DateRange.today, .lastWeek, .lastMonth], id: \.self) { range in
+                        dateRangeOption(range)
+                    }
+                    
+                    Button(action: {
+                        showingCustomDatePicker = true
+                    }) {
+                        HStack(spacing: DesignSystem.Spacing.md) {
+                            Image(systemName: isCustomDateRange ? "largecircle.fill.circle" : "circle")
+                                .foregroundColor(isCustomDateRange ? DesignSystem.Colors.accent : DesignSystem.Colors.secondaryText)
+                            
+                            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                                Text("Custom Range")
+                                    .font(DesignSystem.Typography.body)
+                                    .foregroundColor(DesignSystem.Colors.primaryText)
+                                
+                                if isCustomDateRange {
+                                    Text("\(customStartDate.formatted(date: .abbreviated, time: .omitted)) - \(customEndDate.formatted(date: .abbreviated, time: .omitted))")
+                                        .font(DesignSystem.Typography.caption)
+                                        .foregroundColor(DesignSystem.Colors.secondaryText)
+                                }
+                            }
+                            
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+    
+    private func dateRangeOption(_ range: DateRange) -> some View {
+        Button(action: {
+            selectedDateRange = range
+        }) {
+            HStack(spacing: DesignSystem.Spacing.md) {
+                Image(systemName: selectedDateRange == range ? "largecircle.fill.circle" : "circle")
+                    .foregroundColor(selectedDateRange == range ? DesignSystem.Colors.accent : DesignSystem.Colors.secondaryText)
+                
+                Text(range.displayName)
+                    .font(DesignSystem.Typography.body)
+                    .foregroundColor(DesignSystem.Colors.primaryText)
+                
+                Spacer()
+            }
+        }
+        .buttonStyle(.plain)
+    }
+    
+    // MARK: - Export Format Section
+    
+    private var exportFormatSection: some View {
+        CardView {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                SectionHeaderView(
+                    "Export Options",
+                    subtitle: "Configure export format and additional options"
+                )
+                
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                    // Export Format Picker
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                        Text("Export Format")
+                            .font(DesignSystem.Typography.headline)
+                            .foregroundColor(DesignSystem.Colors.primaryText)
+                        
+                        Picker("Export Format", selection: $selectedExportFormat) {
+                            ForEach(ReportExportFormat.allCases, id: \.self) { format in
+                                Text(format.displayName).tag(format)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                    
+                    // Additional Options
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                        Toggle("Include Visualizations", isOn: $includeVisualizations)
+                            .font(DesignSystem.Typography.body)
+                        
+                        Toggle("Include Recommendations", isOn: $includeRecommendations)
+                            .font(DesignSystem.Typography.body)
+                        
+                        Toggle("Email Report", isOn: $enableEmailExport)
+                            .font(DesignSystem.Typography.body)
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Email Configuration Section
+    
+    private var emailConfigurationSection: some View {
+        CardView {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                SectionHeaderView(
+                    "Email Configuration",
+                    subtitle: "Configure email delivery settings"
+                )
+                
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                    // Recipient Email
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                        Text("Recipient Email")
+                            .font(DesignSystem.Typography.headline)
+                            .foregroundColor(DesignSystem.Colors.primaryText)
+                        
+                        TextField("Enter email address", text: $recipientEmail)
+                            .textFieldStyle(.roundedBorder)
+                    }
+                    
+                    // Email Subject
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                        Text("Subject")
+                            .font(DesignSystem.Typography.headline)
+                            .foregroundColor(DesignSystem.Colors.primaryText)
+                        
+                        TextField("Email subject", text: $emailSubject)
+                            .textFieldStyle(.roundedBorder)
+                    }
+                    
+                    // Email Message
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                        Text("Message")
+                            .font(DesignSystem.Typography.headline)
+                            .foregroundColor(DesignSystem.Colors.primaryText)
+                        
+                        TextField("Email message", text: $emailMessage, axis: .vertical)
+                            .textFieldStyle(.roundedBorder)
+                            .lineLimit(3...6)
+                    }
+                    
+                    // CC Myself Option
+                    Toggle("CC Myself", isOn: $ccMyself)
+                        .font(DesignSystem.Typography.body)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Consultant Presets Section
+    
+    private var consultantPresetsSection: some View {
+        CardView {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                SectionHeaderView(
+                    "Consultant Presets",
+                    subtitle: "Use predefined configurations for common consulting scenarios"
+                )
+                
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                    if let preset = selectedConsultantPreset {
+                        HStack(spacing: DesignSystem.Spacing.md) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(DesignSystem.Colors.success)
+                                .font(.system(size: DesignSystem.Layout.iconSize))
+                            
+                            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                                Text(preset.name)
+                                    .font(DesignSystem.Typography.body)
+                                    .foregroundColor(DesignSystem.Colors.primaryText)
+                                
+                                Text(preset.description)
+                                    .font(DesignSystem.Typography.caption)
+                                    .foregroundColor(DesignSystem.Colors.secondaryText)
+                            }
+                            
+                            Spacer()
+                            
+                            Button("Change") {
+                                showingConsultantPresets = true
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    } else {
+                        Button(action: {
+                            showingConsultantPresets = true
+                        }) {
+                            HStack(spacing: DesignSystem.Spacing.md) {
+                                Image(systemName: "plus.circle")
+                                    .foregroundColor(DesignSystem.Colors.accent)
+                                    .font(.system(size: DesignSystem.Layout.iconSize))
+                                
+                                Text("Select Consultant Preset")
+                                    .font(DesignSystem.Typography.body)
+                                    .foregroundColor(DesignSystem.Colors.primaryText)
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(DesignSystem.Colors.secondaryText)
+                                    .font(.system(size: DesignSystem.Layout.smallIconSize))
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Progress Section
+    
+    private var progressSection: some View {
+        CardView {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                SectionHeaderView("Generation Progress")
+                
+                VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                    ProgressView(value: reportService.generationProgress)
+                        .progressViewStyle(.linear)
+                    
+                    HStack {
+                        Text(reportService.currentTask)
+                            .font(DesignSystem.Typography.body)
+                            .foregroundColor(DesignSystem.Colors.secondaryText)
+                        
+                        Spacer()
+                        
+                        Text("\(Int(reportService.generationProgress * 100))%")
+                            .font(DesignSystem.Typography.body)
+                            .foregroundColor(DesignSystem.Colors.accent)
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Generate Button Section
+    
+    private var generateButtonSection: some View {
+        Button(action: generateReport) {
+            HStack(spacing: DesignSystem.Spacing.md) {
+                if reportService.isGenerating {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .scaleEffect(0.8)
+                } else {
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .font(.system(size: DesignSystem.Layout.iconSize))
+                }
+                
+                Text(reportService.isGenerating ? "Generating Report..." : "Generate Report")
+                    .font(DesignSystem.Typography.body)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(DesignSystem.Spacing.xl)
+            .background(canGenerateReport ? DesignSystem.Colors.accent : DesignSystem.Colors.secondaryText)
+            .foregroundColor(.white)
+            .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Layout.cornerRadius))
+        }
+        .disabled(!canGenerateReport || reportService.isGenerating)
+        .animation(.easeInOut(duration: 0.2), value: reportService.isGenerating)
+    }
+    
+    // MARK: - Results Section
+    
+    private func resultsSection(_ result: ReportGenerationResult) -> some View {
+        CardView {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                HStack(spacing: DesignSystem.Spacing.md) {
+                    Image(systemName: result.isSuccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                        .foregroundColor(result.isSuccess ? DesignSystem.Colors.success : DesignSystem.Colors.error)
+                        .font(.system(size: DesignSystem.Layout.iconSize))
+                    
+                    Text(result.isSuccess ? "Report Generated Successfully" : "Report Generation Failed")
+                        .font(DesignSystem.Typography.headline)
+                        .foregroundColor(DesignSystem.Colors.primaryText)
+                    
+                    Spacer()
+                    
+                    Button("Dismiss") {
+                        withAnimation {
+                            showingResults = false
+                        }
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundColor(DesignSystem.Colors.accent)
+                }
+                
+                Text(result.message)
+                    .font(DesignSystem.Typography.body)
+                    .foregroundColor(DesignSystem.Colors.secondaryText)
+                
+                if result.isSuccess, let report = result.report {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                        HStack {
+                            Text("Generated:")
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.secondaryText)
+                            Text(report.generatedAt.formatted(date: .abbreviated, time: .shortened))
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.primaryText)
+                        }
+                        
+                        HStack {
+                            Text("Data Points:")
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.secondaryText)
+                            Text("\(report.metadata.totalDataPoints) data points")
+                                .font(DesignSystem.Typography.caption)
+                                .foregroundColor(DesignSystem.Colors.primaryText)
+                        }
+                        
+                        Button("Export Report") {
+                            exportReport(report)
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Custom Date Picker Sheet
+    
+    private var customDatePickerSheet: some View {
+        NavigationView {
+            VStack(spacing: DesignSystem.Spacing.xl) {
+                DatePicker("Start Date", selection: $customStartDate, displayedComponents: .date)
+                    .datePickerStyle(.graphical)
+                
+                DatePicker("End Date", selection: $customEndDate, displayedComponents: .date)
+                    .datePickerStyle(.graphical)
+                
+                Spacer()
+            }
+            .padding(DesignSystem.Spacing.xl)
+            .navigationTitle("Custom Date Range")
+            // Navigation bar title display mode is iOS-only
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    Button("Cancel") {
+                        showingCustomDatePicker = false
+                    }
+                }
+                
+                ToolbarItem(placement: .automatic) {
+                    Button("Apply") {
+                        selectedDateRange = .custom(start: customStartDate, end: customEndDate)
+                        showingCustomDatePicker = false
+                    }
+                    .disabled(customStartDate >= customEndDate)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Consultant Presets Sheet
+    
+    private var consultantPresetsSheet: some View {
+        NavigationView {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                ForEach(ConsultantPreset.allCases, id: \.self) { preset in
+                    consultantPresetRow(preset)
+                }
+                
+                Spacer()
+            }
+            .padding(DesignSystem.Spacing.xl)
+            .navigationTitle("Consultant Presets")
+            // Navigation bar title display mode is iOS-only
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    Button("Cancel") {
+                        showingConsultantPresets = false
+                    }
+                }
+                
+                ToolbarItem(placement: .automatic) {
+                    Button("Clear") {
+                        selectedConsultantPreset = nil
+                        showingConsultantPresets = false
+                    }
+                }
+            }
+        }
+    }
+    
+    private func consultantPresetRow(_ preset: ConsultantPreset) -> some View {
+        Button(action: {
+            applyConsultantPreset(preset)
+            showingConsultantPresets = false
+        }) {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                HStack {
+                    Text(preset.name)
+                        .font(DesignSystem.Typography.headline)
+                        .foregroundColor(DesignSystem.Colors.primaryText)
+                    
+                    Spacer()
+                    
+                    if selectedConsultantPreset == preset {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(DesignSystem.Colors.success)
+                    }
+                }
+                
+                Text(preset.description)
+                    .font(DesignSystem.Typography.body)
+                    .foregroundColor(DesignSystem.Colors.secondaryText)
+                    .multilineTextAlignment(.leading)
+                
+                Text(preset.details)
+                    .font(DesignSystem.Typography.caption)
+                    .foregroundColor(DesignSystem.Colors.tertiaryText)
+                    .multilineTextAlignment(.leading)
+            }
+            .padding(DesignSystem.Spacing.lg)
+            .background(DesignSystem.Colors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Layout.cornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignSystem.Layout.cornerRadius)
+                    .stroke(selectedConsultantPreset == preset ? DesignSystem.Colors.accent : Color.clear, lineWidth: 2)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var canGenerateReport: Bool {
+        !selectedDataTypes.isEmpty && !reportService.isGenerating && (!enableEmailExport || !recipientEmail.isEmpty)
+    }
+    
+    private var isCustomDateRange: Bool {
+        if case .custom = selectedDateRange {
+            return true
+        }
+        return false
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func toggleDataType(_ dataType: ReportDataType) {
+        if selectedDataTypes.contains(dataType) {
+            selectedDataTypes.remove(dataType)
+        } else {
+            selectedDataTypes.insert(dataType)
+        }
+    }
+    
+    private func dataTypeDescription(_ dataType: ReportDataType) -> String {
+        switch dataType {
+        case .appActivations:
+            return "App switching events and usage patterns"
+        case .contextSwitches:
+            return "Context switching analysis and productivity metrics"
+        case .aiInsights:
+            return "AI-generated insights and recommendations"
+        case .productivity:
+            return "Productivity scores and focus time analysis"
+        }
+    }
+    
+    private func applyConsultantPreset(_ preset: ConsultantPreset) {
+        selectedConsultantPreset = preset
+        
+        // Apply preset configuration
+        selectedDataTypes = preset.dataTypes
+        selectedDateRange = preset.defaultDateRange
+        selectedExportFormat = preset.preferredFormat
+        includeVisualizations = preset.includeVisualizations
+        includeRecommendations = preset.includeRecommendations
+        
+        if preset.requiresEmail {
+            enableEmailExport = true
+            emailSubject = preset.emailSubject
+            emailMessage = preset.emailTemplate
+        }
+    }
+    
+    private func generateReport() {
+        let config = ReportConfiguration(
+            dateRange: selectedDateRange,
+            dataTypes: selectedDataTypes,
+            includeVisualizations: includeVisualizations,
+            includeRecommendations: includeRecommendations
+        )
+        
+        reportService.generateReport(config: config) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let report):
+                    lastGenerationResult = ReportGenerationResult(
+                        isSuccess: true,
+                        message: "Successfully generated report with \(report.metadata.totalEvents) events and \(report.metadata.totalContextSwitches) context switches.",
+                        report: report
+                    )
+                    
+                    if enableEmailExport && !recipientEmail.isEmpty {
+                        // TODO: Implement email functionality
+                        // This would integrate with system email or a mail service
+                    }
+                    
+                case .failure(let error):
+                    lastGenerationResult = ReportGenerationResult(
+                        isSuccess: false,
+                        message: error.localizedDescription,
+                        report: nil
+                    )
+                }
+                
+                withAnimation {
+                    showingResults = true
+                }
+            }
+        }
+    }
+    
+    private func exportReport(_ report: GeneratedReport) {
+        reportService.exportReport(report, format: selectedExportFormat) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let url):
+                    alertTitle = "Export Successful"
+                    alertMessage = "Report exported to: \(url.lastPathComponent)"
+                    showingAlert = true
+                    
+                    // Reveal in Finder
+                    NSWorkspace.shared.selectFile(url.path, inFileViewerRootedAtPath: url.deletingLastPathComponent().path)
+                    
+                case .failure(let error):
+                    alertTitle = "Export Failed"
+                    alertMessage = error.localizedDescription
+                    showingAlert = true
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Supporting Types
+
+struct ReportGenerationResult {
+    let isSuccess: Bool
+    let message: String
+    let report: GeneratedReport?
+}
+
+enum ConsultantPreset: String, CaseIterable {
+    case executiveSummary = "executive"
+    case productivityAssessment = "productivity"
+    case teamAnalysis = "team"
+    case costBenefitAnalysis = "cost"
+    case performanceReview = "performance"
+    
+    var name: String {
+        switch self {
+        case .executiveSummary: return "Executive Summary"
+        case .productivityAssessment: return "Productivity Assessment"
+        case .teamAnalysis: return "Team Analysis"
+        case .costBenefitAnalysis: return "Cost-Benefit Analysis"
+        case .performanceReview: return "Performance Review"
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .executiveSummary:
+            return "High-level overview focused on key metrics and business impact"
+        case .productivityAssessment:
+            return "Detailed productivity analysis with focus patterns and recommendations"
+        case .teamAnalysis:
+            return "Comprehensive team productivity insights for management review"
+        case .costBenefitAnalysis:
+            return "Financial impact analysis of productivity patterns and costs"
+        case .performanceReview:
+            return "Individual performance metrics suitable for reviews and goal setting"
+        }
+    }
+    
+    var details: String {
+        switch self {
+        case .executiveSummary:
+            return "Includes: Key metrics, cost analysis, executive recommendations. Format: PDF with visualizations."
+        case .productivityAssessment:
+            return "Includes: Detailed analytics, context switching analysis, AI insights. Format: Comprehensive JSON/Markdown."
+        case .teamAnalysis:
+            return "Includes: Team patterns, collaboration metrics, productivity trends. Format: Visual report with charts."
+        case .costBenefitAnalysis:
+            return "Includes: Time lost calculations, cost projections, ROI analysis. Format: Financial summary report."
+        case .performanceReview:
+            return "Includes: Personal metrics, goal alignment, improvement areas. Format: Individual performance summary."
+        }
+    }
+    
+    var dataTypes: Set<ReportDataType> {
+        switch self {
+        case .executiveSummary:
+            return [.appActivations, .productivity]
+        case .productivityAssessment:
+            return [.appUsage, .contextSwitches, .productivityMetrics, .aiAnalysis]
+        case .teamAnalysis:
+            return [.appActivations, .contextSwitches, .productivity]
+        case .costBenefitAnalysis:
+            return [.contextSwitches, .productivity]
+        case .performanceReview:
+            return [.appUsage, .productivityMetrics, .aiAnalysis]
+        }
+    }
+    
+    var defaultDateRange: DateRange {
+        switch self {
+        case .executiveSummary, .teamAnalysis, .costBenefitAnalysis:
+            return .lastMonth
+        case .productivityAssessment, .performanceReview:
+            return .lastWeek
+        }
+    }
+    
+    var preferredFormat: ReportExportFormat {
+        switch self {
+        case .executiveSummary, .teamAnalysis:
+            return .pdf
+        case .productivityAssessment:
+            return .markdown
+        case .costBenefitAnalysis, .performanceReview:
+            return .csv
+        }
+    }
+    
+    var includeVisualizations: Bool {
+        switch self {
+        case .executiveSummary, .teamAnalysis, .productivityAssessment:
+            return true
+        case .costBenefitAnalysis, .performanceReview:
+            return false
+        }
+    }
+    
+    var includeRecommendations: Bool {
+        return true // All presets include recommendations
+    }
+    
+    var requiresEmail: Bool {
+        switch self {
+        case .executiveSummary, .teamAnalysis, .performanceReview:
+            return true
+        case .productivityAssessment, .costBenefitAnalysis:
+            return false
+        }
+    }
+    
+    var emailSubject: String {
+        return "FocusMonitor Report: \(name)"
+    }
+    
+    var emailTemplate: String {
+        switch self {
+        case .executiveSummary:
+            return "Please find attached the executive summary report from FocusMonitor, highlighting key productivity metrics and business impact."
+        case .teamAnalysis:
+            return "Attached is the team productivity analysis report, providing insights into collaboration patterns and team performance."
+        case .performanceReview:
+            return "Please find attached your individual performance report from FocusMonitor, including productivity metrics and recommendations."
+        default:
+            return "Please find attached your activity report from FocusMonitor."
+        }
+    }
+}
+
+// MARK: - Preview
+
+#Preview {
+    GenerateReportView()
+        .frame(width: 800, height: 900)
+}

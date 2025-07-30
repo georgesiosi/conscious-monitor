@@ -1,0 +1,45 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode
+#
+# General
+build/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+#
+# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
+# Packages/
+# Package.resolved often is committed.
+# !Package.resolved
+.build/
+.swiftpm/
+
+# User-specific
+*.xcuserdatad
+*.userstate
+*.mode1v3
+*.mode2v3
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+*.xcscheme
+xcuserdata/
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Istanbul code coverage reports
+coverage/
+
+# Release builds
+releases/
+*.dmg
