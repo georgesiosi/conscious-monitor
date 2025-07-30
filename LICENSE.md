@@ -23,7 +23,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - Using this software as part of a paid service offering
 - Any revenue-generating use beyond internal business operations
 
-For commercial licensing, contact: george@consciousstack.com
+For commercial licensing, contact: george@faiacorp.com
 
 ---
 
@@ -43,4 +43,4 @@ For commercial licensing, contact: george@consciousstack.com
 
 ---
 
-Copyright (c) 2025 George Siosi Samuels
+Copyright (c) 2025 Faiabrand Pte Ld ("Faiā")
