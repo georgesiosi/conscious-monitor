@@ -121,7 +121,7 @@ struct GeneralSettingsView: View {
                     HStack {
                         Text("Copyright")
                         Spacer()
-                        Text("© 2025 Faiā")
+                        Text("© 2025 Faiabrand Pte Ltd ("Faiā")")
                             .foregroundColor(.secondary)
                     }
                     
