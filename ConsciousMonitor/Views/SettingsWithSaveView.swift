@@ -143,11 +143,96 @@ struct SettingsWithSaveView: View {
                 }
                 
                 Section(header: Text("About")) {
-                    HStack {
-                        Text("App Version")
-                        Spacer()
-                        Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "N/A")
+                    VStack(alignment: .leading, spacing: 12) {
+                        // App Version
+                        HStack {
+                            Text("App Version")
+                            Spacer()
+                            Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "N/A")
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Divider()
+                        
+                        // Copyright
+                        HStack {
+                            Text("Copyright")
+                            Spacer()
+                            Text("© 2025 Faiā")
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        // License Information
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("License")
+                                Spacer()
+                                Text("Dual License")
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text("✅")
+                                        .font(.caption)
+                                    Text("Free for personal & internal use")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                }
+                                
+                                HStack {
+                                    Text("💼")
+                                        .font(.caption)
+                                    Text("Commercial license required for revenue use")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                }
+                            }
+                            .padding(.leading, 8)
+                            
+                            // License Link Button
+                            HStack {
+                                Spacer()
+                                Button("View Full License Terms") {
+                                    if let url = URL(string: "https://github.com/georgesiosi/conscious-monitor/blob/main/LICENSE.md") {
+                                        NSWorkspace.shared.open(url)
+                                    }
+                                }
+                                .buttonStyle(.link)
+                                .font(.caption)
+                            }
+                        }
+                        
+                        Divider()
+                        
+                        // Commercial Licensing Contact
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Commercial Licensing")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                            
+                            Text("For commercial use, white-labeling, or revenue-generating applications:")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            HStack {
+                                Text("Contact:")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Button("george@faiacorp.com") {
+                                    if let url = URL(string: "mailto:george@faiacorp.com?subject=ConsciousMonitor Commercial License") {
+                                        NSWorkspace.shared.open(url)
+                                    }
+                                }
+                                .buttonStyle(.link)
+                                .font(.caption)
+                                Spacer()
+                            }
+                        }
                     }
+                    .padding(.vertical, 4)
                 }
             }
             .padding(DesignSystem.Layout.contentPadding)
