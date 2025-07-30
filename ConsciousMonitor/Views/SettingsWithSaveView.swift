@@ -48,9 +48,25 @@ struct SettingsWithSaveView: View {
                     }
                     .padding(.bottom)
                     
-                    Text("Your API key is stored locally and used to analyze your app usage for Workstyle DNA insights. Keep it secure.")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Your API key is stored locally and used to analyze your app usage for Workstyle DNA insights. Keep it secure.")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        
+                        HStack {
+                            Text("Get your API key from:")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                            Button("OpenAI Platform") {
+                                if let url = URL(string: "https://platform.openai.com/account/api-keys") {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            }
+                            .buttonStyle(.link)
+                            .font(.caption)
+                            Spacer()
+                        }
+                    }
                 }
                 
                 Section(header: Text("About Me")) {

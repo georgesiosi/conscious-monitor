@@ -43,3 +43,7 @@ coverage/
 # Release builds
 releases/
 *.dmg
+dist/
+
+# Private local files
+CLAUDE.local.md
