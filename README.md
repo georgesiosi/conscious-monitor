@@ -123,4 +123,4 @@ ConsciousMonitor is available under a **Dual License**:
 
 ---
 
-**Copyright © 2025 Faiabrand Pte Ld ("Faiā")**
+**Copyright © 2025 Faiabrand Pte Ld ("Faiā"). Built on ConsciousStack Design (CSD) principles.**
