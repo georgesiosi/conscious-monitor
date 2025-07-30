@@ -1,10 +1,10 @@
-# FocusMonitor
+# ConsciousMonitor
 
-FocusMonitor is a macOS application designed to track and analyze your app usage patterns, helping you understand your work habits and improve productivity by reducing context switching.
+ConsciousMonitor is a native macOS application designed to track and analyze your app usage patterns, helping you understand your work habits and improve productivity by reducing context switching.
 
 ## Overview
 
-By tracking active applications and Chrome tab switches, FocusMonitor provides insights into your focus and potential distractions, storing this activity for historical review. The app helps you understand how you spend your time across different applications and browser tabs through detailed analytics.
+By tracking active applications and Chrome tab switches, ConsciousMonitor provides insights into your focus and potential distractions, storing this activity for historical review. The app helps you understand how you spend your time across different applications and browser tabs through detailed analytics.
 
 ## Features
 
@@ -21,7 +21,7 @@ By tracking active applications and Chrome tab switches, FocusMonitor provides i
 
 ## Screenshots
 
-![FocusMonitor Main Screen](screenshots/main_screen.png)
+![ConsciousMonitor Main Screen](screenshots/main_screen.png)
 *Main activity tracking screen showing recent app activations*
 
 ![Analytics View](screenshots/analytics.png)
@@ -37,10 +37,10 @@ By tracking active applications and Chrome tab switches, FocusMonitor provides i
 
 ### Download (Recommended)
 
-Download the latest version directly from [GitHub Releases](https://github.com/georgesiosi/cs-monorepo/releases):
+Download the latest version directly from [GitHub Releases](https://github.com/georgesiosi/conscious-monitor/releases):
 
-1. **Download**: Get the latest `FocusMonitor-vX.X.X.dmg` file
-2. **Install**: Open the DMG and drag FocusMonitor to your Applications folder
+1. **Download**: Get the latest `ConsciousMonitor-vX.X.X.dmg` file
+2. **Install**: Open the DMG and drag ConsciousMonitor to your Applications folder
 3. **First Launch**: Right-click the app → "Open" to bypass security warnings
 4. **Permissions**: Allow Chrome integration when prompted for full functionality
 
@@ -48,20 +48,20 @@ Download the latest version directly from [GitHub Releases](https://github.com/g
 
 1. **Clone the Repository**:
    ```bash
-   git clone [URL_OF_YOUR_GIT_REPOSITORY]
-   cd FocusMonitor
+   git clone https://github.com/georgesiosi/conscious-monitor.git
+   cd conscious-monitor
    ```
 
 2. **Open in Xcode**:
-   Open the `FocusMonitor.xcodeproj` file in Xcode.
+   Open the `ConsciousMonitor.xcodeproj` file in Xcode.
 
 3. **Select Target and Run**:
-   - Choose the `FocusMonitor` scheme and "My Mac" (or your Mac's name) as the destination
+   - Choose the `ConsciousMonitor` scheme and "My Mac" (or your Mac's name) as the destination
    - Click the "Run" button (play icon) in the Xcode toolbar
 
 ## Usage
 
-Upon launching, FocusMonitor will immediately begin tracking application activations.
+Upon launching, ConsciousMonitor will immediately begin tracking application activations.
 
 ### Main Window
 The main window displays:
@@ -70,7 +70,7 @@ The main window displays:
 
 ### Chrome Tab Tracking
 To enable Chrome tab tracking:
-- The first time Chrome becomes active while FocusMonitor is running, you may be prompted by macOS to allow FocusMonitor to control Google Chrome
+- The first time Chrome becomes active while ConsciousMonitor is running, you may be prompted by macOS to allow ConsciousMonitor to control Google Chrome
 - You must **Allow** this for tab tracking to work
 - This permission can be managed later in `System Settings` > `Privacy & Security` > `Automation`
 
@@ -87,7 +87,7 @@ Activity data is automatically saved to a JSON file located in your Mac's Applic
 
 ## Framework Integration
 
-FocusMonitor is built on the **Conscious Stack Design (CSD)** framework, which helps users develop awareness of their digital behavior patterns. The app implements the CSD 5:3:1 rule for optimal tool stack management:
+ConsciousMonitor is built on the **Conscious Stack Design (CSD)** framework, which helps users develop awareness of their digital behavior patterns. The app implements the CSD 5:3:1 rule for optimal tool stack management:
 
 - **5**: Maximum tools per category
 - **3**: Active tools at any time  
@@ -103,4 +103,24 @@ Learn more about CSD at [consciousstack.com](https://consciousstack.com). The fu
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+ConsciousMonitor is available under a **Dual License**:
+
+### ✅ Free Use (MIT-based)
+- **Personal productivity** on your Mac
+- **Internal company use** (employees only)
+- **Educational/research** purposes
+- **Contributing** improvements back to this repo
+
+### 💼 Commercial License Required
+- Reselling to clients
+- Including in paid deliverables
+- White-labeling or rebranding
+- Revenue-generating services
+
+**For commercial licensing**, contact: [george@faiacorp.com](mailto:george@faiacorp.com?subject=ConsciousMonitor%20Commercial%20License)
+
+**Full license terms**: [LICENSE.md](LICENSE.md)
+
+---
+
+**Copyright © 2025 Faiā**
