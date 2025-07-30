@@ -244,6 +244,7 @@ struct ShareImageButton: View {
                     .fill(Color.blue)
             )
         }
+        .buttonStyle(.plain)
         .disabled(shareService.isGenerating)
         .alert("Error", isPresented: .constant(shareService.errorMessage != nil)) {
             Button("OK") {
