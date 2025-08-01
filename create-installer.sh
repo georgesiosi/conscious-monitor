@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# FocusMonitor DMG Creator Script
-# This script creates a distributable DMG file for FocusMonitor
+# ConsciousMonitor DMG Creator Script
+# This script creates a distributable DMG file for ConsciousMonitor
 
 # Configuration
-APP_NAME="FocusMonitor"
+APP_NAME="ConsciousMonitor"
 VERSION="1.0.0"
 DMG_NAME="${APP_NAME}-${VERSION}.dmg"
 VOLUME_NAME="${APP_NAME} ${VERSION}"
@@ -16,7 +16,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo "🚀 FocusMonitor DMG Creator"
+echo "🚀 ConsciousMonitor DMG Creator"
 echo "=========================="
 
 # Function to find the exported app
