@@ -18,7 +18,7 @@ ConsciousMonitor (formerly FocusMonitor) is a native macOS application built wit
 - **DMG Creation**: Run `./create-installer.sh` after building (requires `brew install create-dmg`)
 - **Distribution preparation**: Ensure releases/ directory is gitignored
 - **GitHub Release Process**: Tag → DMG → Upload → Publish
-- **Release naming**: Use `cm-v1.0.0` format for monorepo clarity
+- **Release naming**: Use standard `v1.0.0` format
 
 ### Release & Distribution
 - **Branch strategy**: Use trunk-based development with `main` as single source of truth
@@ -27,7 +27,7 @@ ConsciousMonitor (formerly FocusMonitor) is a native macOS application built wit
 - **No separate prod branch**: Deploy and distribute from `main` using tags
 
 #### GitHub Release Workflow
-1. **Create and push tag**: `git tag cm-v1.0.0 && git push origin cm-v1.0.0`
+1. **Create and push tag**: `git tag v1.0.0 && git push origin v1.0.0`
 2. **Go to GitHub**: Visit repository releases page
 3. **Create new release**: Select the tag, title as "ConsciousMonitor v1.0.0"
 4. **Upload DMG**: Attach the DMG file from `./create-installer.sh`
@@ -267,7 +267,3 @@ ConsciousMonitor/
 - **AI features**: OpenAI API integration (user provides API key)
 - **System monitoring**: Uses NSWorkspace for app activation tracking
 
-### Monorepo Release Context
-- **Tag naming**: Prefix with `cm-` to distinguish from other apps in the cs-monorepo
-- **Release notes**: Include app location reference (root directory)
-- **Distribution**: Individual app releases within shared repository structure
