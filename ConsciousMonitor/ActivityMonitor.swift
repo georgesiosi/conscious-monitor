@@ -91,7 +91,7 @@ class ActivityMonitor: ObservableObject {
     private let eventStorageService = EventStorageService.shared
     
     // SQLite Storage Coordinator
-    private static var _storageCoordinator: StorageCoordinator?
+    nonisolated(unsafe) private static var _storageCoordinator: StorageCoordinator?
     var storageCoordinator: StorageCoordinator? {
         get {
             if ActivityMonitor._storageCoordinator == nil {

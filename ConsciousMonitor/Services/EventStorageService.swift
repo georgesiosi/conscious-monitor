@@ -13,7 +13,7 @@ import AppKit
 // - Comprehensive error handling
 
 class EventStorageService: ObservableObject {
-    static let shared = EventStorageService() // Singleton for easy access
+    nonisolated(unsafe) static let shared = EventStorageService() // Singleton for easy access
     
     @Published var events: [AppActivationEvent] = []
     @Published var isLoading: Bool = false

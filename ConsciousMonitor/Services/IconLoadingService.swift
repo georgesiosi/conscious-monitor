@@ -2,7 +2,7 @@ import Foundation
 import AppKit
 
 class IconLoadingService {
-    static let shared = IconLoadingService()
+    nonisolated(unsafe) static let shared = IconLoadingService()
     
     private var iconCache: [String: NSImage] = [:]
     private let cacheQueue = DispatchQueue(label: "com.focusmonitor.iconCache", qos: .utility)

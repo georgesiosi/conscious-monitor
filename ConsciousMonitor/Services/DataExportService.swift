@@ -3,7 +3,7 @@ import AppKit
 import UniformTypeIdentifiers
 
 class DataExportService {
-    static let shared = DataExportService()
+    nonisolated(unsafe) static let shared = DataExportService()
     
     private init() {}
     

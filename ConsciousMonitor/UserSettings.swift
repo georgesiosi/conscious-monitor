@@ -2,7 +2,7 @@ import Foundation
 import Combine
 
 class UserSettings: ObservableObject {
-    static let shared = UserSettings() // Singleton for easy access
+    nonisolated(unsafe) static let shared = UserSettings() // Singleton for easy access
     
     // All settings now auto-save immediately following macOS conventions
 

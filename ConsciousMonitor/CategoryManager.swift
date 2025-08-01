@@ -2,7 +2,7 @@ import Foundation
 import Combine
 
 class CategoryManager: ObservableObject {
-    static let shared = CategoryManager()
+    nonisolated(unsafe) static let shared = CategoryManager()
     
     // MARK: - Published Properties
     @Published var customCategories: [AppCategory] = []
