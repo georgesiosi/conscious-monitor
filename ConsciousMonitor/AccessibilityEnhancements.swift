@@ -318,7 +318,7 @@ extension DesignSystem.Colors {
 // MARK: - VoiceOver Announcements
 
 class VoiceOverAnnouncer: ObservableObject {
-    static let shared = VoiceOverAnnouncer()
+    nonisolated(unsafe) static let shared = VoiceOverAnnouncer()
     
     private init() {}
     

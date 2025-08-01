@@ -3,7 +3,7 @@ import UserNotifications
 import Combine
 
 class AwarenessNotificationService: ObservableObject {
-    static let shared = AwarenessNotificationService()
+    nonisolated(unsafe) static let shared = AwarenessNotificationService()
     
     @Published var isEnabled: Bool = true
     @Published var lastNotificationTime: Date?

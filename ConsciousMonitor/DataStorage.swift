@@ -1,7 +1,7 @@
 import Foundation
 
 class DataStorage {
-    static let shared = DataStorage() // Singleton for easy access
+    nonisolated(unsafe) static let shared = DataStorage() // Singleton for easy access
 
     private var eventsStorageURL: URL
     private var contextSwitchesStorageURL: URL

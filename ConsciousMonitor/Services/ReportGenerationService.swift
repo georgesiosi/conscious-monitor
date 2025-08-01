@@ -8,7 +8,7 @@ import Combine
 /// Comprehensive service for generating structured reports from ConsciousMonitor data
 /// Integrates with existing DataStorage, AnalyticsService, and export infrastructure
 class ReportGenerationService: ObservableObject {
-    static let shared = ReportGenerationService()
+    nonisolated(unsafe) static let shared = ReportGenerationService()
     
     // MARK: - Published Properties for Progress Tracking
     @Published var isGenerating = false

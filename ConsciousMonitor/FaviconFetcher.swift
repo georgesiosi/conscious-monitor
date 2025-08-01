@@ -2,7 +2,7 @@ import AppKit
 import Combine
 
 class FaviconFetcher: ObservableObject {
-    static let shared = FaviconFetcher()
+    nonisolated(unsafe) static let shared = FaviconFetcher()
     private var cache = [String: NSImage]()
     private var cancellables = Set<AnyCancellable>()
     private let diskCacheURL: URL

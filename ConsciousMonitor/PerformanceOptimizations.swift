@@ -199,7 +199,7 @@ extension ActivityMonitor {
 // MARK: - Shared Cache Instance
 
 extension DataCache {
-    static let shared = DataCache()
+    nonisolated(unsafe) static let shared = DataCache()
 }
 
 // MARK: - View Extensions for Performance
