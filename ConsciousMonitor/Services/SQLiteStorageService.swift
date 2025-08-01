@@ -13,7 +13,7 @@ import SwiftUI
 
 /// SQLite-based storage service for ConsciousMonitor
 /// Provides high-performance database operations while maintaining SwiftUI reactive patterns
-class SQLiteStorageService: ObservableObject {
+class SQLiteStorageService: ObservableObject, StorageServiceProtocol {
     static let shared = SQLiteStorageService()
     
     // MARK: - Published Properties for SwiftUI Integration
@@ -82,6 +82,10 @@ class SQLiteStorageService: ObservableObject {
         
         return appDirectory.appendingPathComponent("ConsciousMonitor.sqlite")
     }
+    
+    // MARK: - StorageServiceProtocol Compliance
+    var storageType: StorageType { return .sqlite }
+    var supportsMigrationFrom: [StorageType] { return [.json] }
     
     // MARK: - Initialization
     private init() {
@@ -609,8 +613,43 @@ extension Array {
 // MARK: - AppCategory Extension for Name-based Lookup
 extension AppCategory {
     static func fromName(_ name: String) -> AppCategory {
-        // This will need to be implemented to match your existing AppCategory structure
-        // For now, return a default category
-        return AppCategory(id: UUID(), name: name)
+        // Map common category names to predefined categories
+        switch name.lowercased() {
+        case "productivity":
+            return .productivity
+        case "communication":
+            return .communication
+        case "social media":
+            return .socialMedia
+        case "development":
+            return .development
+        case "entertainment":
+            return .entertainment
+        case "design":
+            return .design
+        case "utilities":
+            return .utilities
+        case "education":
+            return .education
+        case "finance":
+            return .finance
+        case "health & fitness", "health":
+            return .health
+        case "lifestyle":
+            return .lifestyle
+        case "news":
+            return .news
+        case "shopping":
+            return .shopping
+        case "travel":
+            return .travel
+        case "knowledge management":
+            return .knowledgeManagement
+        case "other":
+            return .other
+        default:
+            // Create a custom category for unknown names
+            return AppCategory(id: UUID(), name: name)
+        }
     }
 }

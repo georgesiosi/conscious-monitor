@@ -20,6 +20,13 @@ class ActivityMonitor: ObservableObject {
     // Published property for app usage statistics (computed from activationEvents)
     @Published var appUsageStats: [AppUsageStat] = []
     
+    // SQLite Migration Properties
+    @Published var showMigrationPrompt: Bool = false
+    @Published var isMigrating: Bool = false
+    @Published var migrationProgress: Double = 0.0
+    @Published var migrationStatus: String = ""
+    @Published var isStorageLoading: Bool = false
+    
     // Track the last app switch for context tracking
     internal var lastAppSwitch: (name: String, timestamp: Date, bundleId: String?, category: AppCategory)?
     
@@ -82,6 +89,20 @@ class ActivityMonitor: ObservableObject {
     
     private let dataStorage = DataStorage.shared
     private let eventStorageService = EventStorageService.shared
+    
+    // SQLite Storage Coordinator
+    private static var _storageCoordinator: StorageCoordinator?
+    var storageCoordinator: StorageCoordinator? {
+        get {
+            if ActivityMonitor._storageCoordinator == nil {
+                ActivityMonitor._storageCoordinator = StorageCoordinator()
+            }
+            return ActivityMonitor._storageCoordinator
+        }
+        set {
+            ActivityMonitor._storageCoordinator = newValue
+        }
+    }
     
     // Load context switches from disk
     private func loadContextSwitches() {
