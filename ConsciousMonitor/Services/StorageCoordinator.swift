@@ -42,15 +42,18 @@ class StorageCoordinator: ObservableObject {
         case .json:
             return jsonStorageService
         case .sqlite:
-            return sqliteStorageService
+            // TODO: Return SQLiteStorageService when ready
+            return jsonStorageService // Fallback to JSON for now
         case .hybrid:
-            return sqliteStorageService // Use SQLite during hybrid mode
+            // TODO: Return SQLiteStorageService when ready
+            return jsonStorageService // Fallback to JSON for now
         }
     }
     
     // MARK: - Storage Services
     private let jsonStorageService = EventStorageServiceAdapter()
-    private let sqliteStorageService = SQLiteStorageService.shared
+    // TODO: Re-enable when SQLiteStorageService is ready
+    // private let sqliteStorageService = SQLiteStorageService.shared
     private let migrationService = DatabaseMigrationService()
     
     // MARK: - Properties for External Binding
@@ -95,16 +98,13 @@ class StorageCoordinator: ObservableObject {
                 switch state {
                 case .notStarted:
                     self?.migrationState = .notStarted
-                case .inProgress, .validating:
+                case .inProgress:
                     self?.migrationState = .inProgress
                 case .completed:
                     self?.migrationState = .completed
                     self?.currentBackend = .sqlite
                 case .failed:
                     self?.migrationState = .failed
-                case .rolledBack:
-                    self?.migrationState = .rollback
-                    self?.currentBackend = .json
                 }
             }
             .store(in: &cancellables)
@@ -151,23 +151,25 @@ class StorageCoordinator: ObservableObject {
                     .store(in: &cancellables)
             }
         case .sqlite, .hybrid:
-            if let sqliteService = service as? SQLiteStorageService {
-                sqliteService.$events
+            // TODO: Handle SQLiteStorageService when ready
+            // For now, treat as JSON since we're using jsonStorageService as fallback
+            if let jsonService = service as? EventStorageServiceAdapter {
+                jsonService.$events
                     .receive(on: DispatchQueue.main)
                     .assign(to: \.events, on: self)
                     .store(in: &cancellables)
                 
-                sqliteService.$contextSwitches
+                jsonService.$contextSwitches
                     .receive(on: DispatchQueue.main)
                     .assign(to: \.contextSwitches, on: self)
                     .store(in: &cancellables)
                 
-                sqliteService.$isLoading
+                jsonService.$isLoading
                     .receive(on: DispatchQueue.main)
                     .assign(to: \.isLoading, on: self)
                     .store(in: &cancellables)
                 
-                sqliteService.$lastError
+                jsonService.$lastError
                     .receive(on: DispatchQueue.main)
                     .assign(to: \.lastError, on: self)
                     .store(in: &cancellables)
