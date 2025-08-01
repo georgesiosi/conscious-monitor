@@ -146,16 +146,29 @@ class DatabaseMigrationService: ObservableObject {
     
     private func loadSourceData() async throws -> SourceData {
         return try await withCheckedThrowingContinuation { continuation in
-            DispatchQueue.global(qos: .utility).async {
+            DispatchQueue.global(qos: .utility).async { [weak self] in
+                guard let self = self else {
+                    continuation.resume(throwing: MigrationError.sourceDataCorrupted([]))
+                    return
+                }
+                
                 do {
                     // Load from EventStorageService (modern approach)
                     let events = self.eventStorageService.events
-                    // EventStorageService doesn't handle context switches, get from DataStorage
-                    let contextSwitches: [ContextSwitchMetrics] = []
                     
-                    // Also check legacy DataStorage for any additional data
-                    let legacyEvents = self.dataStorage.loadEvents()
-                    let legacyContextSwitches = self.dataStorage.loadContextSwitches()
+                    // Load context switches from DataStorage (sync operation)
+                    let legacyEvents: [AppActivationEvent]
+                    let legacyContextSwitches: [ContextSwitchMetrics]
+                    
+                    // Use synchronous DataStorage methods since we're already on background queue
+                    do {
+                        legacyEvents = try self.loadEventsSync()
+                        legacyContextSwitches = try self.loadContextSwitchesSync()
+                    } catch {
+                        // If loading fails, use empty arrays
+                        legacyEvents = []
+                        legacyContextSwitches = []
+                    }
                     
                     // Merge data, preferring EventStorageService data for events
                     let allEvents = self.mergeEvents(modern: events, legacy: legacyEvents)
@@ -207,6 +220,38 @@ class DatabaseMigrationService: ObservableObject {
         }
         
         return Array(switchMap.values).sorted { $0.timestamp < $1.timestamp }
+    }
+    
+    // MARK: - Synchronous Data Loading
+    
+    private func loadEventsSync() throws -> [AppActivationEvent] {
+        // Since DataStorage.loadEvents() is actually synchronous, we can call it directly
+        return dataStorage.loadEvents()
+    }
+    
+    private func loadContextSwitchesSync() throws -> [ContextSwitchMetrics] {
+        // Use a semaphore to make the async call synchronous
+        let semaphore = DispatchSemaphore(value: 0)
+        var result: [ContextSwitchMetrics] = []
+        var error: Error?
+        
+        dataStorage.loadContextSwitches { loadResult in
+            switch loadResult {
+            case .success(let switches):
+                result = switches
+            case .failure(let loadError):
+                error = loadError
+            }
+            semaphore.signal()
+        }
+        
+        semaphore.wait()
+        
+        if let error = error {
+            throw error
+        }
+        
+        return result
     }
     
     // MARK: - Data Validation
