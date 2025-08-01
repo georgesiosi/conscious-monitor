@@ -11,6 +11,7 @@ struct DataManagementView: View {
     @State private var exportResult: DataExportResult?
     @State private var showingExportResult = false
     @State private var selectedTab: DataManagementTab = .export
+    @State private var showingMigrationSheet = false
     
     enum DataExportResult {
         case success
@@ -58,6 +59,10 @@ struct DataManagementView: View {
             Button("OK") { }
         } message: {
             Text(alertMessage)
+        }
+        .sheet(isPresented: $showingMigrationSheet) {
+            MigrationView()
+                .frame(minWidth: 500, minHeight: 400)
         }
     }
     
@@ -258,6 +263,28 @@ struct DataManagementView: View {
                     }
                     .padding(.top, 8)
                 }
+                
+                // SQLite Migration Section
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Database Migration (Development)")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    Button(action: testMigrationUI) {
+                        HStack(spacing: DesignSystem.Spacing.sm) {
+                            Image(systemName: "arrow.up.circle")
+                                .font(.system(size: 14))
+                            Text("Test Migration UI")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    
+                    Text("Test the SQLite migration user interface (development feature).")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.top, 16)
             }
             .padding()
             .background(Color(.controlBackgroundColor))
@@ -302,6 +329,10 @@ struct DataManagementView: View {
     
     private func refreshFileInfo() {
         dataFileInfo = DataExportService.shared.getDataFileInfo()
+    }
+    
+    private func testMigrationUI() {
+        showingMigrationSheet = true
     }
     
     private func strokeColorForResult(_ result: DataExportResult) -> Color {
