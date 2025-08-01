@@ -45,6 +45,7 @@ ConsciousMonitor (formerly FocusMonitor) is a native macOS application built wit
 - **Service Integration**: When adding new features, leverage existing service infrastructure rather than creating parallel systems
 - **UI Consistency**: Follow established DesignSystem patterns and subtab navigation for complex settings pages
 - **Build Validation**: Always test compilation after significant changes - fix warnings promptly to prevent accumulation
+- **Functional Simplicity**: **Always prioritize working functionality over complex non-functional features** - start simple, build up gradually to ensure testable foundations before adding complexity
 
 ## Architecture
 
