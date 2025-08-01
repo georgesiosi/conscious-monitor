@@ -31,9 +31,8 @@ struct MigrationView: View {
             }
             .padding(32)
             .navigationTitle("Database Migration")
-            .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     Button("Close") {
                         dismiss()
                     }
@@ -351,7 +350,7 @@ struct MigrationDetailsView: View {
             }
             .navigationTitle("Migration Details")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     Button("Done") {
                         dismiss()
                     }

@@ -7,9 +7,9 @@
 //
 
 import Foundation
-import SQLite
 import Combine
 import SwiftUI
+import SQLite
 
 /// SQLite-based storage service for ConsciousMonitor
 /// Provides high-performance database operations while maintaining SwiftUI reactive patterns
@@ -601,14 +601,7 @@ enum DatabaseError: LocalizedError {
     }
 }
 
-// MARK: - Array Extension for Batching
-extension Array {
-    func chunked(into size: Int) -> [[Element]] {
-        return stride(from: 0, to: count, by: size).map {
-            Array(self[$0..<Swift.min($0 + size, count)])
-        }
-    }
-}
+// MARK: - Array Extension for Batching (moved to DatabaseMigrationService)
 
 // MARK: - AppCategory Extension for Name-based Lookup
 extension AppCategory {

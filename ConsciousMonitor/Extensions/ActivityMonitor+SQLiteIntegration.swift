@@ -203,7 +203,7 @@ extension ActivityMonitor {
     // MARK: - Storage Performance Monitoring
     
     /// Get storage performance metrics
-    func getStoragePerformanceMetrics() async -> StorageCoordinator.StoragePerformanceMetrics? {
+    func getStoragePerformanceMetrics() async -> StoragePerformanceMetrics? {
         return await storageCoordinator?.getStoragePerformanceMetrics()
     }
     
@@ -240,10 +240,15 @@ extension ActivityMonitor {
 // MARK: - Convenience Methods for SQLite Integration
 extension ActivityMonitor {
     
-    /// Force save all data (for app termination)
-    func forceSaveAllData() {
-        // Implementation handled by the existing method in ActivityMonitor
-        performBatchSave()
+    /// Force save all data using new storage system (for app termination)
+    func forceSaveAllDataWithSQLite() {
+        // For SQLite, data is automatically saved with transactions
+        // For JSON, use the existing batch save mechanism
+        if isUsingSQLite {
+            print("SQLite storage - data automatically saved with transactions")
+        } else {
+            performBatchSave()
+        }
     }
 }
 

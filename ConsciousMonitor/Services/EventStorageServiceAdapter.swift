@@ -155,15 +155,17 @@ class EventStorageServiceAdapter: ObservableObject, StorageServiceProtocol {
         let filteredEvents = try await loadEvents(from: startDate, to: endDate)
         
         return await MainActor.run {
-            // Group events by app
+            // Group events by app using string key
             let groupedEvents = Dictionary(grouping: filteredEvents) { event in
-                (event.appName ?? "Unknown", event.bundleIdentifier ?? "")
+                "\(event.appName ?? "Unknown")|\(event.bundleIdentifier ?? "")"
             }
             
             // Create usage stats
             return groupedEvents.compactMap { (key, events) -> AppUsageStat? in
-                let (appName, bundleId) = key
-                guard !appName.isEmpty else { return nil }
+                let components = key.split(separator: "|", maxSplits: 1)
+                let appName = String(components.first ?? "Unknown")
+                let bundleId = components.count > 1 ? String(components[1]) : ""
+                guard !appName.isEmpty && appName != "Unknown" else { return nil }
                 
                 let lastEvent = events.max { $0.timestamp < $1.timestamp }
                 let category = events.first?.category ?? AppCategory.other

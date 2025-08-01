@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F659DFBC2E3C9DFC00FB77B9 /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = F659DFBB2E3C9DFC00FB77B9 /* SQLite */; };
 		F6F8800A2DCC0CC30026B774 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = F6F880092DCC0CC30026B774 /* MarkdownUI */; };
 /* End PBXBuildFile section */
 
@@ -56,6 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F659DFBC2E3C9DFC00FB77B9 /* SQLite in Frameworks */,
 				F6F8800A2DCC0CC30026B774 /* MarkdownUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -83,6 +85,7 @@
 				F605CED42DCA87EF00FDFE87 /* ConsciousMonitor */,
 				F605CEE32DCA87F100FDFE87 /* ConsciousMonitor-Tests */,
 				F605CEED2DCA87F100FDFE87 /* ConsciousMonitor-UITests */,
+				F659DFBA2E3C9DFC00FB77B9 /* Frameworks */,
 				F605CED32DCA87EF00FDFE87 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -95,6 +98,13 @@
 				F605CEEA2DCA87F100FDFE87 /* ConsciousMonitorUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		F659DFBA2E3C9DFC00FB77B9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -118,6 +128,7 @@
 			name = ConsciousMonitor;
 			packageProductDependencies = (
 				F6F880092DCC0CC30026B774 /* MarkdownUI */,
+				F659DFBB2E3C9DFC00FB77B9 /* SQLite */,
 			);
 			productName = "FocusMonitor-v0";
 			productReference = F605CED22DCA87EF00FDFE87 /* ConsciousMonitor.app */;
@@ -204,6 +215,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				F6F880082DCC0CC30026B774 /* XCRemoteSwiftPackageReference "MarkdownUI" */,
+				F659DFB72E3C9D8600FB77B9 /* XCRemoteSwiftPackageReference "SQLite" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F605CED32DCA87EF00FDFE87 /* Products */;
@@ -605,6 +617,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		F659DFB72E3C9D8600FB77B9 /* XCRemoteSwiftPackageReference "SQLite" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stephencelis/SQLite.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.15.4;
+			};
+		};
 		F6F880082DCC0CC30026B774 /* XCRemoteSwiftPackageReference "MarkdownUI" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/gonzalezreal/MarkdownUI.git";
@@ -616,6 +636,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		F659DFBB2E3C9DFC00FB77B9 /* SQLite */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F659DFB72E3C9D8600FB77B9 /* XCRemoteSwiftPackageReference "SQLite" */;
+			productName = SQLite;
+		};
 		F6F880092DCC0CC30026B774 /* MarkdownUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F6F880082DCC0CC30026B774 /* XCRemoteSwiftPackageReference "MarkdownUI" */;

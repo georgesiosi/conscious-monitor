@@ -13,7 +13,7 @@ import Combine
 extension ConsciousMonitorApp {
     
     /// Initialize SQLite integration during app startup
-    func initializeSQLiteIntegration() {
+    func initializeSQLiteIntegration(with activityMonitor: ActivityMonitor) {
         // Setup storage coordinator in ActivityMonitor
         activityMonitor.setupStorageCoordinator()
         

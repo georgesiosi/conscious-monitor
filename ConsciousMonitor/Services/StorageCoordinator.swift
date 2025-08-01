@@ -126,17 +126,52 @@ class StorageCoordinator: ObservableObject {
         
         let service = currentStorageService
         
-        // Bind events
-        if let publisher = (service as? any ObservableObject)?.objectWillChange {
-            publisher
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] _ in
-                    self?.events = service.events
-                    self?.contextSwitches = service.contextSwitches
-                    self?.isLoading = service.isLoading
-                    self?.lastError = service.lastError
-                }
-                .store(in: &cancellables)
+        // Bind to specific service types
+        switch currentBackend {
+        case .json:
+            if let jsonService = service as? EventStorageServiceAdapter {
+                jsonService.$events
+                    .receive(on: DispatchQueue.main)
+                    .assign(to: \.events, on: self)
+                    .store(in: &cancellables)
+                
+                jsonService.$contextSwitches
+                    .receive(on: DispatchQueue.main)
+                    .assign(to: \.contextSwitches, on: self)
+                    .store(in: &cancellables)
+                
+                jsonService.$isLoading
+                    .receive(on: DispatchQueue.main)
+                    .assign(to: \.isLoading, on: self)
+                    .store(in: &cancellables)
+                
+                jsonService.$lastError
+                    .receive(on: DispatchQueue.main)
+                    .assign(to: \.lastError, on: self)
+                    .store(in: &cancellables)
+            }
+        case .sqlite, .hybrid:
+            if let sqliteService = service as? SQLiteStorageService {
+                sqliteService.$events
+                    .receive(on: DispatchQueue.main)
+                    .assign(to: \.events, on: self)
+                    .store(in: &cancellables)
+                
+                sqliteService.$contextSwitches
+                    .receive(on: DispatchQueue.main)
+                    .assign(to: \.contextSwitches, on: self)
+                    .store(in: &cancellables)
+                
+                sqliteService.$isLoading
+                    .receive(on: DispatchQueue.main)
+                    .assign(to: \.isLoading, on: self)
+                    .store(in: &cancellables)
+                
+                sqliteService.$lastError
+                    .receive(on: DispatchQueue.main)
+                    .assign(to: \.lastError, on: self)
+                    .store(in: &cancellables)
+            }
         }
         
         // Initial data load

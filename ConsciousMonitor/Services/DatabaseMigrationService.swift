@@ -150,15 +150,17 @@ class DatabaseMigrationService: ObservableObject {
                 do {
                     // Load from EventStorageService (modern approach)
                     let events = self.eventStorageService.events
-                    let contextSwitches = self.eventStorageService.contextSwitches
+                    // EventStorageService doesn't handle context switches, get from DataStorage
+                    let contextSwitches: [ContextSwitchMetrics] = []
                     
                     // Also check legacy DataStorage for any additional data
                     let legacyEvents = self.dataStorage.loadEvents()
                     let legacyContextSwitches = self.dataStorage.loadContextSwitches()
                     
-                    // Merge data, preferring EventStorageService data
+                    // Merge data, preferring EventStorageService data for events
                     let allEvents = self.mergeEvents(modern: events, legacy: legacyEvents)
-                    let allContextSwitches = self.mergeContextSwitches(modern: contextSwitches, legacy: legacyContextSwitches)
+                    // For context switches, only use DataStorage since EventStorageService doesn't handle them
+                    let allContextSwitches = legacyContextSwitches
                     
                     let sourceData = SourceData(
                         events: allEvents,

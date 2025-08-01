@@ -46,7 +46,7 @@ class ActivityMonitor: ObservableObject {
     internal var currentSessionSwitchCount: Int = 0
     
     // Subscription storage
-    private var cancellables = Set<AnyCancellable>()
+    internal var cancellables = Set<AnyCancellable>()
     
     // Removed debouncing infrastructure - now using immediate saves
     
@@ -323,7 +323,7 @@ class ActivityMonitor: ObservableObject {
     }
     
     /// Merge new events from EventStorageService while preserving any loaded icons
-    private func mergeEventsPreservingIcons(newEvents: [AppActivationEvent]) {
+    internal func mergeEventsPreservingIcons(newEvents: [AppActivationEvent]) {
         // Create a dictionary of existing events with their icons
         var existingIconMap: [UUID: (appIcon: NSImage?, siteFavicon: NSImage?)] = [:]
         
