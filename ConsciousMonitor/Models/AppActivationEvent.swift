@@ -3,7 +3,7 @@ import AppKit
 
 // Struct to hold information about an app activation event
 // Make it Codable for JSON serialization
-struct AppActivationEvent: Identifiable, Codable, Equatable, Sendable {
+struct AppActivationEvent: Identifiable, Codable, Equatable, @unchecked Sendable {
     
     // Equatable implementation that excludes NSImage properties
     static func == (lhs: AppActivationEvent, rhs: AppActivationEvent) -> Bool {

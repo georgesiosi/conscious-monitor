@@ -52,7 +52,8 @@ class FloatingWindowManager: NSObject, ObservableObject {
     deinit {
         saveTimer?.invalidate()
         // Clean up window directly without calling main actor methods
-        floatingWindow?.close()
+        // Note: NSWindow.close() is @MainActor but we can't call it from deinit
+        // The window will be deallocated automatically when the reference is nil
         floatingWindow = nil
         hostingView = nil
         NotificationCenter.default.removeObserver(self)

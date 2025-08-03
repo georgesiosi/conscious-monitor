@@ -2,7 +2,7 @@ import Foundation
 import AppKit
 
 // Struct to hold app usage statistics
-struct AppUsageStat: Identifiable, Codable {
+struct AppUsageStat: Identifiable, Codable, @unchecked Sendable {
     let id: UUID
     let appName: String
     let bundleIdentifier: String?
@@ -67,7 +67,7 @@ struct AppUsageStat: Identifiable, Codable {
 }
 
 // Struct to hold site usage statistics for Chrome
-struct SiteUsageStat: Identifiable, Codable {
+struct SiteUsageStat: Identifiable, Codable, @unchecked Sendable {
     let id: UUID
     let siteDomain: String
     var displayTitle: String // e.g., siteDomain or a recent tab title
