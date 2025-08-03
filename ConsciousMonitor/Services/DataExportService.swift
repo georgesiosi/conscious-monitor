@@ -2,9 +2,8 @@ import Foundation
 import AppKit
 import UniformTypeIdentifiers
 
-@MainActor
 class DataExportService {
-    static let shared = DataExportService()
+    nonisolated(unsafe) static let shared = DataExportService()
     
     private init() {}
     
@@ -37,6 +36,7 @@ class DataExportService {
     
     // MARK: - Export Data
     
+    @MainActor
     func exportData(format: ExportFormat, dateRange: DateRange? = nil, completion: @escaping (Result<Void, ExportError>) -> Void) {
         let savePanel = NSSavePanel()
         savePanel.allowedContentTypes = [contentType(for: format)]
@@ -54,6 +54,7 @@ class DataExportService {
     
     // MARK: - Export Analysis Data
     
+    @MainActor
     func exportAnalyses(format: ExportFormat, analyses: [AnalysisEntry]? = nil, dateRange: DateRange? = nil, completion: @escaping (Result<Void, ExportError>) -> Void) {
         let savePanel = NSSavePanel()
         savePanel.allowedContentTypes = [contentType(for: format)]
@@ -69,6 +70,7 @@ class DataExportService {
         }
     }
     
+    @MainActor
     func exportSingleAnalysis(analysis: AnalysisEntry, format: ExportFormat, completion: @escaping (Result<Void, ExportError>) -> Void) {
         let savePanel = NSSavePanel()
         savePanel.allowedContentTypes = [contentType(for: format)]
@@ -498,6 +500,7 @@ class DataExportService {
     
     // MARK: - File System Access
     
+    @MainActor
     func revealDataDirectory() {
         NSWorkspace.shared.open(DataStorage.shared.dataDirectoryURL)
     }

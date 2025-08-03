@@ -339,9 +339,11 @@ struct ProductivityGainsCard: View {
         guard metrics.hasMinimumData else { return }
         
         stopRotationTimer()
-        rotationTimer = Timer.scheduledTimer(withTimeInterval: rotationInterval, repeats: true) { _ in
-            withAnimation(.easeInOut(duration: 0.3)) {
-                cycleToNextMetric()
+        rotationTimer = Timer.scheduledTimer(withTimeInterval: rotationInterval, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    self?.cycleToNextMetric()
+                }
             }
         }
     }
