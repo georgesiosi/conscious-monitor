@@ -42,18 +42,15 @@ class StorageCoordinator: ObservableObject {
         case .json:
             return jsonStorageService
         case .sqlite:
-            // TODO: Return SQLiteStorageService when ready
-            return jsonStorageService // Fallback to JSON for now
+            return sqliteStorageService
         case .hybrid:
-            // TODO: Return SQLiteStorageService when ready
-            return jsonStorageService // Fallback to JSON for now
+            return sqliteStorageService // Use SQLite during migration
         }
     }
     
     // MARK: - Storage Services
     private let jsonStorageService = EventStorageServiceAdapter()
-    // TODO: Re-enable when SQLiteStorageService is ready
-    // private let sqliteStorageService = SQLiteStorageService.shared
+    private let sqliteStorageService = SQLiteStorageService.shared
     private let migrationService = DatabaseMigrationService()
     
     // MARK: - Properties for External Binding
@@ -151,25 +148,24 @@ class StorageCoordinator: ObservableObject {
                     .store(in: &cancellables)
             }
         case .sqlite, .hybrid:
-            // TODO: Handle SQLiteStorageService when ready
-            // For now, treat as JSON since we're using jsonStorageService as fallback
-            if let jsonService = service as? EventStorageServiceAdapter {
-                jsonService.$events
+            // Handle SQLiteStorageService
+            if let sqliteService = service as? SQLiteStorageService {
+                sqliteService.$events
                     .receive(on: DispatchQueue.main)
                     .assign(to: \.events, on: self)
                     .store(in: &cancellables)
                 
-                jsonService.$contextSwitches
+                sqliteService.$contextSwitches
                     .receive(on: DispatchQueue.main)
                     .assign(to: \.contextSwitches, on: self)
                     .store(in: &cancellables)
                 
-                jsonService.$isLoading
+                sqliteService.$isLoading
                     .receive(on: DispatchQueue.main)
                     .assign(to: \.isLoading, on: self)
                     .store(in: &cancellables)
                 
-                jsonService.$lastError
+                sqliteService.$lastError
                     .receive(on: DispatchQueue.main)
                     .assign(to: \.lastError, on: self)
                     .store(in: &cancellables)
@@ -229,7 +225,25 @@ class StorageCoordinator: ObservableObject {
             migrationState = .inProgress
         }
         
+        // Perform the migration
         await migrationService.performMigration()
+        
+        // Switch to SQLite backend if migration succeeded
+        await MainActor.run {
+            if migrationService.migrationState == .completed {
+                currentBackend = .sqlite
+                migrationState = .completed
+                // Save migration completion to UserDefaults
+                UserDefaults.standard.set(true, forKey: "SQLiteMigrationCompleted")
+            } else if migrationService.migrationState == .failed {
+                // Rollback to JSON on failure
+                currentBackend = .json
+                migrationState = .failed
+            }
+            
+            // Re-setup bindings for the new backend
+            setupStorageBinding()
+        }
     }
     
     /// Check if migration is available

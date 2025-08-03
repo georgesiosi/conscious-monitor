@@ -214,7 +214,7 @@ extension SQLiteStorageService {
     
     /// Add a new app activation event
     func addEvent(_ event: AppActivationEvent) async throws {
-        try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             dbQueue.async {
                 do {
                     guard let statement = self.insertEventStatement else {
@@ -258,7 +258,7 @@ extension SQLiteStorageService {
     
     /// Add multiple events in a batch transaction
     func addEvents(_ events: [AppActivationEvent]) async throws {
-        try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             dbQueue.async {
                 do {
                     guard let db = self.db else {
@@ -319,7 +319,7 @@ extension SQLiteStorageService {
     
     /// Load events for a specific date range
     func loadEvents(from startDate: Date? = nil, to endDate: Date? = nil, limit: Int? = nil) async throws -> [AppActivationEvent] {
-        return try await withCheckedThrowingContinuation { continuation in
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[AppActivationEvent], Error>) in
             dbQueue.async {
                 do {
                     guard let db = self.db else {
@@ -396,7 +396,7 @@ extension SQLiteStorageService {
     
     /// Add a new context switch metric
     func addContextSwitch(_ contextSwitch: ContextSwitchMetrics) async throws {
-        try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             dbQueue.async {
                 do {
                     guard let statement = self.insertSwitchStatement else {
@@ -437,7 +437,7 @@ extension SQLiteStorageService {
     
     /// Load context switches for a specific date range
     func loadContextSwitches(from startDate: Date? = nil, to endDate: Date? = nil, limit: Int? = nil) async throws -> [ContextSwitchMetrics] {
-        return try await withCheckedThrowingContinuation { continuation in
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[ContextSwitchMetrics], Error>) in
             dbQueue.async {
                 do {
                     guard let db = self.db else {
@@ -508,7 +508,7 @@ extension SQLiteStorageService {
     
     /// Get app usage statistics for a specific date range
     func getAppUsageStats(from startDate: Date, to endDate: Date) async throws -> [AppUsageStat] {
-        return try await withCheckedThrowingContinuation { continuation in
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<[AppUsageStat], Error>) in
             dbQueue.async {
                 do {
                     guard let db = self.db else {
@@ -579,7 +579,7 @@ extension SQLiteStorageService {
             eventStorageService.ensureEventsLoaded()
             
             // Wait for events to be loaded
-            await withCheckedContinuation { continuation in
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
                 if eventStorageService.isInitialLoadComplete {
                     continuation.resume()
                 } else {

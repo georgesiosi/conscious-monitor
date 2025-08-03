@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 
+@MainActor
 class FloatingWindowManager: NSObject, ObservableObject {
     private var floatingWindow: NSWindow?
     private var hostingView: NSHostingView<FloatingFocusBarView>?
@@ -50,7 +51,10 @@ class FloatingWindowManager: NSObject, ObservableObject {
     
     deinit {
         saveTimer?.invalidate()
-        closeFloatingWindow()
+        // Clean up window directly without calling main actor methods
+        floatingWindow?.close()
+        floatingWindow = nil
+        hostingView = nil
         NotificationCenter.default.removeObserver(self)
     }
     
@@ -247,11 +251,13 @@ class FloatingWindowManager: NSObject, ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            if let window = notification.object as? NSWindow,
-               window.title == "Conscious Monitor App" {
-                // Main window became active - hide floating window if auto-hide is enabled
-                if UserSettings.shared.floatingBarAutoHide {
-                    self?.updateWindowVisibility(shouldShow: false)
+            Task { @MainActor in
+                if let window = notification.object as? NSWindow,
+                   window.title == "Conscious Monitor App" {
+                    // Main window became active - hide floating window if auto-hide is enabled
+                    if UserSettings.shared.floatingBarAutoHide {
+                        self?.updateWindowVisibility(shouldShow: false)
+                    }
                 }
             }
         }
@@ -261,11 +267,13 @@ class FloatingWindowManager: NSObject, ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            if let window = notification.object as? NSWindow,
-               window.title == "Conscious Monitor App" {
-                // Main window lost focus - show floating window if enabled
-                let shouldShow = UserSettings.shared.showFloatingFocusPanel
-                self?.updateWindowVisibility(shouldShow: shouldShow)
+            Task { @MainActor in
+                if let window = notification.object as? NSWindow,
+                   window.title == "Conscious Monitor App" {
+                    // Main window lost focus - show floating window if enabled
+                    let shouldShow = UserSettings.shared.showFloatingFocusPanel
+                    self?.updateWindowVisibility(shouldShow: shouldShow)
+                }
             }
         }
     }
@@ -277,14 +285,16 @@ class FloatingWindowManager: NSObject, ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            let shouldShow = UserSettings.shared.showFloatingFocusPanel
-            
-            if shouldShow {
-                // User enabled floating bar - show window
-                self?.updateWindowVisibility(shouldShow: true, userInitiated: true)
-            } else {
-                // User disabled floating bar - hide window
-                self?.updateWindowVisibility(shouldShow: false, userInitiated: true)
+            Task { @MainActor in
+                let shouldShow = UserSettings.shared.showFloatingFocusPanel
+                
+                if shouldShow {
+                    // User enabled floating bar - show window
+                    self?.updateWindowVisibility(shouldShow: true, userInitiated: true)
+                } else {
+                    // User disabled floating bar - hide window
+                    self?.updateWindowVisibility(shouldShow: false, userInitiated: true)
+                }
             }
         }
     }
@@ -361,7 +371,9 @@ extension FloatingWindowManager: NSWindowDelegate {
     private func scheduleSave() {
         saveTimer?.invalidate()
         saveTimer = Timer.scheduledTimer(withTimeInterval: saveDebounceInterval, repeats: false) { [weak self] _ in
-            self?.saveWindowPreferences()
+            Task { @MainActor in
+                self?.saveWindowPreferences()
+            }
         }
     }
     

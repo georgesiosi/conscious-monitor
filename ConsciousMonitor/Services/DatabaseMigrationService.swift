@@ -27,29 +27,39 @@ class DatabaseMigrationService: ObservableObject {
         case failed
     }
     
-    // MARK: - Basic Migration Method
+    // MARK: - Actual SQLite Migration Method
+    @MainActor
     func performMigration() async {
         await MainActor.run {
             migrationState = .inProgress
             progress = 0.0
-            currentStep = "Starting migration..."
+            currentStep = "Initializing SQLite database..."
         }
         
-        // Simulate migration steps
-        for i in 1...5 {
+        do {
+            // Get the SQLite storage service
+            let sqliteService = SQLiteStorageService.shared
+            
             await MainActor.run {
-                progress = Double(i) / 5.0
-                currentStep = "Step \(i) of 5..."
+                progress = 0.1
+                currentStep = "Migrating data from JSON to SQLite..."
             }
             
-            // Simulate work
-            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
-        }
-        
-        await MainActor.run {
-            migrationState = .completed
-            progress = 1.0
-            currentStep = "Migration completed!"
+            // Perform the actual migration
+            try await sqliteService.migrateFromJSONStorage()
+            
+            await MainActor.run {
+                progress = 1.0
+                currentStep = "Migration completed successfully!"
+                migrationState = .completed
+            }
+            
+        } catch {
+            await MainActor.run {
+                self.error = error
+                migrationState = .failed
+                currentStep = "Migration failed: \(error.localizedDescription)"
+            }
         }
     }
     

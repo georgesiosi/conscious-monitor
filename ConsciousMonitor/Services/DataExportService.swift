@@ -2,8 +2,9 @@ import Foundation
 import AppKit
 import UniformTypeIdentifiers
 
+@MainActor
 class DataExportService {
-    nonisolated(unsafe) static let shared = DataExportService()
+    static let shared = DataExportService()
     
     private init() {}
     

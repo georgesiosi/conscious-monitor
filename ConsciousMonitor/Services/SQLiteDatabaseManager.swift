@@ -128,7 +128,7 @@ class SQLiteDatabaseManager: ObservableObject {
         }
         
         return try await withCheckedThrowingContinuation { continuation in
-            fileQueue.async { [weak self] in
+            fileQueue.async { @Sendable [weak self] in
                 guard let self = self else {
                     continuation.resume(throwing: DatabaseError.initializationFailed("Manager deallocated"))
                     return
@@ -278,7 +278,7 @@ class SQLiteDatabaseManager: ObservableObject {
         }
         
         return try await withCheckedThrowingContinuation { continuation in
-            fileQueue.async { [weak self] in
+            fileQueue.async { @Sendable [weak self] in
                 guard let self = self else {
                     continuation.resume(throwing: DatabaseError.backupFailed("Manager deallocated"))
                     return
@@ -430,14 +430,14 @@ class SQLiteDatabaseManager: ObservableObject {
         
         // Daily maintenance timer
         Timer.scheduledTimer(withTimeInterval: 24 * 60 * 60, repeats: true) { [weak self] _ in
-            Task {
+            Task { @MainActor in
                 await self?.performMaintenance()
             }
         }
     }
     
     private func performMaintenance() async {
-        fileQueue.async { [weak self] in
+        fileQueue.async { @Sendable [weak self] in
             guard let self = self else { return }
             
             do {
@@ -637,7 +637,7 @@ extension SQLiteDatabaseManager {
     
     /// Handle macOS system events that might affect database operations
     func handleSystemEvent(_ event: SystemEvent) {
-        fileQueue.async { [weak self] in
+        fileQueue.async { @Sendable [weak self] in
             guard let self = self else { return }
             
             switch event {
@@ -720,7 +720,7 @@ extension SQLiteDatabaseManager {
     /// Perform health check on database
     func performHealthCheck() async -> DatabaseHealthReport {
         return await withCheckedContinuation { continuation in
-            fileQueue.async { [weak self] in
+            fileQueue.async { @Sendable [weak self] in
                 guard let self = self else {
                     continuation.resume(returning: DatabaseHealthReport.failed("Manager not available"))
                     return

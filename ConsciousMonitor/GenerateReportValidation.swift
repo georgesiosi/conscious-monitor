@@ -23,6 +23,7 @@ struct GenerateReportValidation {
     }
     
     // MARK: - Test Suite
+    @MainActor
     static func runValidationSuite() -> [ValidationResult] {
         var results: [ValidationResult] = []
         
@@ -85,6 +86,7 @@ struct GenerateReportValidation {
         return ValidationResult("Model Dependencies", passed: passed, message: message, details: issues)
     }
     
+    @MainActor
     private static func testServiceIntegration() -> ValidationResult {
         var issues: [String] = []
         
@@ -242,6 +244,7 @@ struct GenerateReportValidation {
 /// Quick integration test that can be run from anywhere in the codebase
 struct QuickIntegrationTest {
     
+    @MainActor
     static func runQuickTest() -> Bool {
         // Test 1: Create a basic report configuration
         let config = ReportConfiguration(
