@@ -118,6 +118,28 @@ NSWorkspace notifications → ActivityMonitor → SwiftUI Views
   }
   ```
 
+- **@MainActor Usage Precision**: Apply @MainActor surgically to methods needing UI access, not entire classes:
+  ```swift
+  // ❌ Over-broad application causes background queue conflicts
+  @MainActor
+  class DataExportService {
+      func exportAsJSON() { /* Called from DispatchQueue.global */ }
+  }
+  
+  // ✅ Surgical application only to UI methods
+  class DataExportService {
+      @MainActor func exportData() { /* Uses NSSavePanel */ }
+      func exportAsJSON() { /* Can be called from any queue */ }
+  }
+  ```
+
+- **Sendable Protocol for Models**: Use @unchecked Sendable for models with non-Sendable properties like NSImage:
+  ```swift
+  struct AppActivationEvent: Identifiable, Codable, @unchecked Sendable {
+      var appIcon: NSImage? // NSImage is not Sendable
+  }
+  ```
+
 ### Design Principles
 - **Prioritize Clear > Clever**: Always favor simple, predictable solutions over complex "smart" features
 - Use established UI patterns (e.g., Save buttons) rather than auto-save complexity
@@ -171,6 +193,48 @@ This pattern ensures complete user workflows rather than data generation without
 **Target Timeline**: Q1 2025
 **Dependencies**: Swift SQLite library evaluation and integration
 **Risk Mitigation**: Maintain JSON export functionality for data portability
+
+**Architecture Lessons from 2025-08-03 SQLite Migration Attempt**:
+
+**CRITICAL INSIGHT**: The SQLite migration revealed that this codebase has significant Swift 6.0 concurrency architecture debt that predates any SQLite work. Attempting to upgrade Swift versions while adding major features simultaneously creates cascading complexity.
+
+**What Worked Well**:
+- ✅ **StorageServiceProtocol abstraction** - Clean interface for backend switching
+- ✅ **Migration UI infrastructure** - MigrationView and DatabaseMigrationService patterns
+- ✅ **SQLiteStorageService structure** - Async/await patterns and prepared statements approach
+- ✅ **Storage Coordinator pattern** - Backend switching logic is architecturally sound
+
+**Root Problems Discovered**:
+- **Mixed threading patterns**: UI classes calling storage methods from background queues
+- **Unclear actor boundaries**: Singleton services without proper concurrency isolation  
+- **Swift 6.0 strict concurrency**: Exposed existing architectural debt throughout the codebase
+- **@MainActor over-application**: Applying class-level @MainActor instead of method-level precision
+
+**Fresh Approach Strategies for Future Attempts**:
+
+1. **Option A - Incremental SQLite on Swift 5.0**:
+   - Keep Swift 5.0, add SQLite migration cleanly without concurrency chaos
+   - Prove storage upgrade works in isolation
+   - Tackle Swift 6.0 as separate, focused migration later
+
+2. **Option B - Minimal Viable SQLite**:
+   - Extract proven components: StorageServiceProtocol, basic SQLiteStorageService
+   - Build incrementally without full reactive patterns initially
+   - Test each layer before adding complexity
+
+3. **Option C - Database Layer Only**:
+   - Implement SQLite as pure data layer (no SwiftUI integration)
+   - Keep existing JSON system as primary interface
+   - SQLite runs in background for analytics/performance enhancement only
+
+**Key Implementation Rules**:
+- **Never upgrade Swift version and add major features simultaneously**
+- **Start with data layer, then add reactive UI patterns incrementally**
+- **Test storage operations in isolation before SwiftUI integration**
+- **Apply @MainActor surgically to methods needing UI access, not entire classes**
+- **Consider SQLite as enhancement rather than replacement initially**
+
+**Technical Debt Priority**: Address Swift 6.0 concurrency architecture as separate initiative before attempting major storage migrations.
 
 ### Additional Roadmap Items
 
