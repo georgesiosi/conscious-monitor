@@ -6,7 +6,7 @@ extension ActivityMonitor {
     
     /// Handles Chrome-specific functionality when Chrome becomes active
     func handleChromeActivation(for eventId: UUID) {
-        print("Chrome detected. Querying active tab...")
+        print("🌐 Chrome detected. Querying active tab for event: \(eventId)")
         
         // Run AppleScript in the background
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -18,11 +18,20 @@ extension ActivityMonitor {
                 
                 switch result {
                 case .success(let tabInfo):
-                    print("Chrome Tab Info: Title='\(tabInfo.title)', URL='\(tabInfo.url)'")
+                    print("✅ Chrome Tab Info Retrieved: Title='\(tabInfo.title)', URL='\(tabInfo.url)'")
                     
+                    print("🔍 Looking for event \(eventId) in \(self.activationEvents.count) events")
                     if let index = self.activationEvents.firstIndex(where: { $0.id == eventId }) {
+                        print("📝 Found event at index \(index), updating with Chrome tab data")
                         self.activationEvents[index].chromeTabTitle = tabInfo.title
                         self.activationEvents[index].chromeTabUrl = tabInfo.url
+                        
+                        // Confirm the update was successful
+                        print("✅ Chrome tab data saved: '\(self.activationEvents[index].chromeTabTitle ?? "nil")'")
+                        print("✅ Chrome URL saved: '\(self.activationEvents[index].chromeTabUrl ?? "nil")'")
+                        
+                        // Trigger UI update by notifying observers
+                        self.objectWillChange.send()
                         
                         // Extract domain and fetch favicon
                         if let domain = FaviconFetcher.shared.extractDomain(fromUrlString: tabInfo.url) {
@@ -43,15 +52,27 @@ extension ActivityMonitor {
                     }
                     
                 case .failure(let error):
-                    print("DEBUG: Entered .failure case for Chrome tab info.")
-                    print("DEBUG: eventId to find for UI update: \(eventId)")
-                    print("Failed to get Chrome tab info: \(error.localizedDescription)")
+                    print("❌ Chrome tab info retrieval failed for event \(eventId)")
+                    print("❌ Error details: \(error.localizedDescription)")
                     
                     // Update the event with an error message
                     if let index = self.activationEvents.firstIndex(where: { $0.id == eventId }) {
+                        print("📝 Setting error message for Chrome event at index \(index)")
                         self.activationEvents[index].chromeTabTitle = "Error: Unable to retrieve tab information"
                     } else {
-                        print("DEBUG: CRITICAL - Could not find event with id \(eventId) to update its title.")
+                        print("🚨 Event \(eventId) NOT FOUND in activationEvents array!")
+                        print("🔍 Current events count: \(self.activationEvents.count)")
+                        print("🔍 Recent event IDs: \(self.activationEvents.prefix(3).map { $0.id })")
+                        
+                        // Try to update via EventStorageService directly
+                        print("🔄 Attempting to update via EventStorageService...")
+                        self.eventStorageService.updateEventChromeData(
+                            eventId: eventId,
+                            tabTitle: "Error: Unable to retrieve tab information",
+                            tabUrl: "",
+                            siteDomain: nil
+                        )
+                        print("📝 Updated event via EventStorageService")
                     }
                 }
             }

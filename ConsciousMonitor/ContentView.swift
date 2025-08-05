@@ -110,20 +110,13 @@ struct EventRow: View {
                     .foregroundColor(DesignSystem.Colors.tertiaryText)
             }
             VStack(alignment: .leading) {
-                Text(event.appName ?? "Unknown App")
+                Text(event.displayName)
                     .fontWeight(.medium)
                     .foregroundColor(DesignSystem.Colors.primaryText)
                 
-                Text(event.category.name)
+                Text(event.displaySubtitle)
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.secondaryText)
-
-                if let tabTitle = event.chromeTabTitle {
-                    Text(tabTitle)
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.tertiaryText)
-                        .lineLimit(1)
-                }
             }
             Spacer()
             Text(timeFormatter.string(from: event.timestamp))

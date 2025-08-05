@@ -81,7 +81,7 @@ class ActivityMonitor: ObservableObject {
     // MARK: - Data Persistence
     
     private let dataStorage = DataStorage.shared
-    private let eventStorageService = EventStorageService.shared
+    internal let eventStorageService = EventStorageService.shared
     
     // Load context switches from disk
     private func loadContextSwitches() {
@@ -522,9 +522,40 @@ class ActivityMonitor: ObservableObject {
         // No need to manually append or sort - EventStorageService handles this
         print("App Activated: \(appName) (\(bundleId ?? "N/A")) at \(event.timestamp)")
 
-        // Check if the activated app is Google Chrome
+        // Check if the activated app is Google Chrome and get tab info immediately
         if bundleId == "com.google.Chrome" {
-            self.handleChromeActivation(for: eventId)
+            print("🌐 Chrome bundle ID matched! Getting tab info immediately...")
+            
+            // Get Chrome tab info synchronously on background queue
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                let result = AppleScriptRunner.getChromeActiveTabInfo()
+                
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    
+                    switch result {
+                    case .success(let tabInfo):
+                        print("✅ Chrome Tab Info Retrieved: Title='\(tabInfo.title)', URL='\(tabInfo.url)'")
+                        
+                        // Extract domain
+                        let domain = FaviconFetcher.shared.extractDomain(fromUrlString: tabInfo.url)
+                        
+                        // Update the event via EventStorageService
+                        self.eventStorageService.updateEventChromeData(
+                            eventId: eventId,
+                            tabTitle: tabInfo.title,
+                            tabUrl: tabInfo.url,
+                            siteDomain: domain
+                        )
+                        print("✅ Chrome tab data updated via EventStorageService")
+                        
+                    case .failure(let error):
+                        print("❌ Chrome tab info retrieval failed: \(error.localizedDescription)")
+                    }
+                }
+            }
+        } else {
+            print("📱 Non-Chrome app activated: \(appName) (\(bundleId ?? "N/A"))")
         }
     }
 

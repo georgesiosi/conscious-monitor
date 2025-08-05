@@ -38,8 +38,8 @@ struct ModernActivityView: View {
         
         let lowercaseSearch = searchText.lowercased()
         return activityMonitor.activationEvents.filter { event in
-            // Search in app name
-            if let appName = event.appName, appName.lowercased().contains(lowercaseSearch) {
+            // Search in display name (which includes Chrome tab titles)
+            if event.displayName.lowercased().contains(lowercaseSearch) {
                 return true
             }
             
@@ -492,7 +492,7 @@ struct ModernEventRow: View {
                 // Event details
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                     HStack {
-                        Text(event.appName ?? "Unknown App")
+                        Text(event.displayName)
                             .font(DesignSystem.Typography.body)
                             .fontWeight(.medium)
                             .foregroundColor(DesignSystem.Colors.primaryText)
@@ -506,7 +506,7 @@ struct ModernEventRow: View {
                     
                     HStack {
                         // Category badge
-                        Text(event.category.name)
+                        Text(event.displaySubtitle)
                             .font(DesignSystem.Typography.caption2)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
@@ -514,13 +514,6 @@ struct ModernEventRow: View {
                             .padding(.vertical, 2)
                             .background(event.category.color)
                             .cornerRadius(4)
-                        
-                        if let tabTitle = event.chromeTabTitle {
-                            Text(tabTitle)
-                                .font(DesignSystem.Typography.caption)
-                                .foregroundColor(DesignSystem.Colors.secondaryText)
-                                .lineLimit(1)
-                        }
                         
                         Spacer()
                     }

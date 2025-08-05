@@ -265,6 +265,26 @@ class EventStorageService: ObservableObject {
         }
     }
     
+    /// Update an existing event with Chrome tab data
+    func updateEventChromeData(eventId: UUID, tabTitle: String, tabUrl: String, siteDomain: String?) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            if let index = self.events.firstIndex(where: { $0.id == eventId }) {
+                var updatedEvent = self.events[index]
+                updatedEvent.chromeTabTitle = tabTitle
+                updatedEvent.chromeTabUrl = tabUrl
+                updatedEvent.siteDomain = siteDomain
+                self.events[index] = updatedEvent
+                
+                print("EventStorageService: Updated Chrome data for event \(eventId)")
+                print("EventStorageService: Title: '\(tabTitle)', Domain: '\(siteDomain ?? "nil")'")
+            } else {
+                print("EventStorageService: Could not find event \(eventId) to update Chrome data")
+            }
+        }
+    }
+    
     /// Batch update icons for multiple events
     func updateEventIcons(_ iconUpdates: [(eventId: UUID, appIcon: NSImage?, siteFavicon: NSImage?)]) {
         DispatchQueue.main.async { [weak self] in
