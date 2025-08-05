@@ -125,15 +125,10 @@ struct AppActivationEvent: Identifiable, Codable, Equatable {
     var displayName: String {
         // For Chrome, show the tab title or domain if available
         if bundleIdentifier == "com.google.Chrome" {
-            print("🔍 Chrome event - bundleId: \(bundleIdentifier ?? "nil"), tabTitle: '\(chromeTabTitle ?? "nil")', domain: '\(siteDomain ?? "nil")'")
             if let tabTitle = chromeTabTitle, !tabTitle.isEmpty {
-                print("✅ Using Chrome tab title: \(tabTitle)")
                 return tabTitle
             } else if let domain = siteDomain {
-                print("✅ Using Chrome domain: \(domain)")
                 return domain
-            } else {
-                print("❌ No Chrome tab data available, falling back to app name")
             }
         }
         
@@ -141,12 +136,12 @@ struct AppActivationEvent: Identifiable, Codable, Equatable {
         return appName ?? "Unknown App"
     }
     
-    /// Returns the subtitle for display (app name for Chrome, category for others)
+    /// Returns the subtitle for display (Chrome + domain category for Chrome tabs, category for others)
     var displaySubtitle: String {
-        // For Chrome, show the app name as subtitle since we show tab title as main
+        // For Chrome, show Chrome + domain category
         if bundleIdentifier == "com.google.Chrome" {
-            print("🔍 Chrome subtitle - returning 'Chrome' instead of category '\(category.name)'")
-            return "Chrome"
+            let domainCategory = CategoryManager.shared.getCategoryForChromeTab(domain: siteDomain)
+            return "Chrome • \(domainCategory.name)"
         }
         
         // For other apps, show category

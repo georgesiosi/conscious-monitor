@@ -5,14 +5,26 @@ struct CategoryPickerView: View {
     
     @State private var selectedCategory: AppCategory
     let appToCategorize: AppSwitchChartData // appName, bundleId, and initial category come from here
-    let onSave: (AppCategory, String?) -> Void // Category, BundleID
+    let chromeDomain: String? // For Chrome tabs, the domain to categorize
+    let onSave: (AppCategory, String?) -> Void // Category, BundleID or Domain
+    let onSaveDomain: ((AppCategory, String) -> Void)? // For Chrome domain categorization
 
     @ObservedObject private var categoryManager = CategoryManager.shared
 
-    init(initialCategory: AppCategory, appToCategorize: AppSwitchChartData, onSave: @escaping (AppCategory, String?) -> Void) {
+    init(initialCategory: AppCategory, appToCategorize: AppSwitchChartData, chromeDomain: String? = nil, onSave: @escaping (AppCategory, String?) -> Void, onSaveDomain: ((AppCategory, String) -> Void)? = nil) {
         _selectedCategory = State(initialValue: initialCategory)
         self.appToCategorize = appToCategorize
+        self.chromeDomain = chromeDomain
         self.onSave = onSave
+        self.onSaveDomain = onSaveDomain
+    }
+    
+    /// Display name - shows domain for Chrome tabs, app name for regular apps
+    private var displayName: String {
+        if let domain = chromeDomain {
+            return domain
+        }
+        return appToCategorize.appName
     }
 
     var body: some View {
@@ -23,8 +35,8 @@ struct CategoryPickerView: View {
                 .fontWeight(.semibold)
                 .foregroundColor(DesignSystem.Colors.primaryText)
             
-            // App info
-            Text("Categorize '\(appToCategorize.appName)'")
+            // App/Domain info
+            Text("Categorize '\(displayName)'")
                 .font(DesignSystem.Typography.subheadline)
                 .foregroundColor(DesignSystem.Colors.secondaryText)
             
@@ -57,7 +69,13 @@ struct CategoryPickerView: View {
                 Spacer()
                 
                 Button("Save Category") {
-                    onSave(selectedCategory, appToCategorize.bundleIdentifier)
+                    if let domain = chromeDomain, let onSaveDomain = onSaveDomain {
+                        // Save domain-specific category
+                        onSaveDomain(selectedCategory, domain)
+                    } else {
+                        // Save app-specific category
+                        onSave(selectedCategory, appToCategorize.bundleIdentifier)
+                    }
                     dismiss()
                 }
                 .keyboardShortcut(.defaultAction)

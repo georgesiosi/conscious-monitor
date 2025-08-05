@@ -634,6 +634,7 @@ struct CategoryPickerSheet: View {
         CategoryPickerView(
             initialCategory: event.category,
             appToCategorize: chartDataForPicker,
+            chromeDomain: event.bundleIdentifier == "com.google.Chrome" ? event.siteDomain : nil,
             onSave: { newCategory, bundleId in
                 if let validBundleId = bundleId, !validBundleId.isEmpty {
                     CategoryManager.shared.setCategoryForApp(bundleIdentifier: validBundleId, category: newCategory)
@@ -648,6 +649,22 @@ struct CategoryPickerSheet: View {
                     activityMonitor.activationEvents = updatedEvents
                     activityMonitor.refreshDueToCategoryChange()
                 }
+                dismiss()
+            },
+            onSaveDomain: { newCategory, domain in
+                // Save domain-specific category
+                CategoryManager.shared.setCategoryForDomain(domain, category: newCategory)
+                
+                // Update all Chrome events with this domain to use the new category
+                var updatedEvents = [AppActivationEvent]()
+                for var event in activityMonitor.activationEvents {
+                    if event.bundleIdentifier == "com.google.Chrome" && event.siteDomain == domain {
+                        event.category = newCategory
+                    }
+                    updatedEvents.append(event)
+                }
+                activityMonitor.activationEvents = updatedEvents
+                activityMonitor.refreshDueToCategoryChange()
                 dismiss()
             }
         )
