@@ -279,9 +279,16 @@ struct ModernActivityView: View {
                                 }
                             } else {
                                 ForEach(sortedGroupedEvents, id: \.key) { appName, events in
-                                    ModernAppGroupCard(appName: appName, events: events) { event in
-                                        selectedEventForCategorization = event
-                                    }
+                                    ModernAppGroupCard(
+                                        appName: appName, 
+                                        events: events,
+                                        onEventTap: { event in
+                                            selectedEventForCategorization = event
+                                        },
+                                        onDomainTap: { event in
+                                            selectedEventForDomainCategorization = event
+                                        }
+                                    )
                                 }
                             }
                             
@@ -485,6 +492,10 @@ struct ModernEventRow: View {
         return formatter
     }
     
+    private var isClickableTabTitle: Bool {
+        event.bundleIdentifier == "com.google.Chrome" && onTabTitleTap != nil
+    }
+    
     var body: some View {
         HStack(spacing: DesignSystem.Spacing.md) {
                 // App icon
@@ -509,7 +520,7 @@ struct ModernEventRow: View {
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                     HStack {
                         // Tab title - clickable for Chrome tabs to set domain category
-                        if event.bundleIdentifier == "com.google.Chrome" && onTabTitleTap != nil {
+                        if isClickableTabTitle {
                             Button(action: onTabTitleTap!) {
                                 Text(event.displayName)
                                     .font(DesignSystem.Typography.body)
@@ -578,6 +589,7 @@ struct ModernAppGroupCard: View {
     let appName: String
     let events: [AppActivationEvent]
     let onEventTap: (AppActivationEvent) -> Void
+    let onDomainTap: (AppActivationEvent) -> Void
     @State private var isExpanded = false
     
     var body: some View {
@@ -629,10 +641,10 @@ struct ModernAppGroupCard: View {
                         ModernEventRow(
                             event: event,
                             onTap: {
-                                selectedEventForCategorization = event
+                                onEventTap(event)
                             },
                             onTabTitleTap: event.bundleIdentifier == "com.google.Chrome" ? {
-                                selectedEventForDomainCategorization = event
+                                onDomainTap(event)
                             } : nil
                         )
                         .padding(.horizontal, DesignSystem.Spacing.md)

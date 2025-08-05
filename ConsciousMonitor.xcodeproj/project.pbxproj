@@ -34,17 +34,17 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		F605CED42DCA87EF00FDFE87 /* FocusMonitor */ = {
+		F605CED42DCA87EF00FDFE87 /* ConsciousMonitor */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ConsciousMonitor;
 			sourceTree = "<group>";
 		};
-		F605CEE32DCA87F100FDFE87 /* FocusMonitor-Tests */ = {
+		F605CEE32DCA87F100FDFE87 /* ConsciousMonitor-Tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "ConsciousMonitor-Tests";
 			sourceTree = "<group>";
 		};
-		F605CEED2DCA87F100FDFE87 /* FocusMonitor-UITests */ = {
+		F605CEED2DCA87F100FDFE87 /* ConsciousMonitor-UITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "ConsciousMonitor-UITests";
 			sourceTree = "<group>";
@@ -148,7 +148,7 @@
 		};
 		F605CEE92DCA87F100FDFE87 /* ConsciousMonitorUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F605CEFA2DCA87F100FDFE87 /* Build configuration list for PBXNativeTarget "FocusMonitorUITests" */;
+			buildConfigurationList = F605CEFA2DCA87F100FDFE87 /* Build configuration list for PBXNativeTarget "ConsciousMonitorUITests" */;
 			buildPhases = (
 				F605CEE62DCA87F100FDFE87 /* Sources */,
 				F605CEE72DCA87F100FDFE87 /* Frameworks */,
@@ -193,7 +193,7 @@
 					};
 				};
 			};
-			buildConfigurationList = F605CECD2DCA87EF00FDFE87 /* Build configuration list for PBXProject "FocusMonitor" */;
+			buildConfigurationList = F605CECD2DCA87EF00FDFE87 /* Build configuration list for PBXProject "ConsciousMonitor" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -268,12 +268,12 @@
 /* Begin PBXTargetDependency section */
 		F605CEE22DCA87F100FDFE87 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = F605CED12DCA87EF00FDFE87 /* FocusMonitor */;
+			target = F605CED12DCA87EF00FDFE87 /* ConsciousMonitor */;
 			targetProxy = F605CEE12DCA87F100FDFE87 /* PBXContainerItemProxy */;
 		};
 		F605CEEC2DCA87F100FDFE87 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = F605CED12DCA87EF00FDFE87 /* FocusMonitor */;
+			target = F605CED12DCA87EF00FDFE87 /* ConsciousMonitor */;
 			targetProxy = F605CEEB2DCA87F100FDFE87 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -566,7 +566,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		F605CECD2DCA87EF00FDFE87 /* Build configuration list for PBXProject "FocusMonitor" */ = {
+		F605CECD2DCA87EF00FDFE87 /* Build configuration list for PBXProject "ConsciousMonitor" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F605CEF22DCA87F100FDFE87 /* Debug */,
