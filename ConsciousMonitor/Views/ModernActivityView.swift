@@ -480,6 +480,19 @@ struct ModernEventRow: View {
     @State private var isHovered = false
     @ObservedObject private var userSettings = UserSettings.shared
     
+    // Default icons for fallback
+    private var defaultAppIcon: NSImage {
+        NSImage(systemSymbolName: "app.fill", accessibilityDescription: "App") ?? NSImage()
+    }
+    
+    private var defaultChromeIcon: NSImage {
+        NSImage(systemSymbolName: "network", accessibilityDescription: "Browser") ?? NSImage()
+    }
+    
+    private var defaultFaviconIcon: NSImage {
+        NSImage(systemSymbolName: "globe", accessibilityDescription: "Website") ?? NSImage()
+    }
+    
     init(event: AppActivationEvent, onTap: @escaping () -> Void, onTabTitleTap: (() -> Void)? = nil) {
         self.event = event
         self.onTap = onTap
@@ -500,8 +513,8 @@ struct ModernEventRow: View {
         HStack(spacing: DesignSystem.Spacing.md) {
                 // App icon
                 if event.bundleIdentifier == "com.google.Chrome" {
-                    let chromeIcon = event.appIcon ?? NSImage(named: "chrome") ?? defaultAppIcon
-                    let favicon = event.siteFavicon ?? NSImage(named: "favicon_placeholder") ?? defaultFaviconIcon
+                    let chromeIcon = event.appIcon ?? defaultChromeIcon
+                    let favicon = event.siteFavicon ?? defaultFaviconIcon
                     DualAppIconView(backgroundImage: chromeIcon, overlayImage: favicon, size: 32)
                 } else if let appIcon = event.appIcon {
                     Image(nsImage: appIcon)
@@ -572,14 +585,6 @@ struct ModernEventRow: View {
                 isHovered = hovering
             }
         }
-    }
-    
-    private var defaultAppIcon: NSImage {
-        NSImage(systemSymbolName: "app.dashed", accessibilityDescription: "App") ?? NSImage()
-    }
-    
-    private var defaultFaviconIcon: NSImage {
-        NSImage(systemSymbolName: "globe", accessibilityDescription: "Website") ?? NSImage()
     }
 }
 

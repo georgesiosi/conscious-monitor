@@ -334,10 +334,10 @@ struct IconResolverView: View {
     var body: some View {
         Group {
             if let fromImage = fromImage {
-                DualAppIconView(backgroundImage: fromImage, overlayImage: toImage, size: size)
+                DualAppIconView(backgroundImage: fromImage, overlayImage: toImage ?? defaultAppIcon, size: size)
             } else {
                 // Show placeholder if fromImage is still loading or failed
-                DualAppIconView(backgroundImage: defaultAppIcon, overlayImage: toImage, size: size)
+                DualAppIconView(backgroundImage: defaultAppIcon, overlayImage: toImage ?? defaultAppIcon, size: size)
             }
         }
         .task(id: fromBundleId) {

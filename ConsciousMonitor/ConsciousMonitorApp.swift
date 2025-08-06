@@ -22,6 +22,12 @@ struct ConsciousMonitorApp: App {
                         print("Setting up FloatingWindowManager")
                         floatingWindowManager.setActivityMonitor(activityMonitor)
                     }
+                    
+                    // Start favicon backfilling for existing Chrome events
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        print("Starting favicon backfill for existing Chrome events")
+                        EventStorageService.shared.backfillMissingFavicons()
+                    }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
                     // Force save all data before app terminates

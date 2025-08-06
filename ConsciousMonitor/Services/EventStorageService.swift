@@ -281,6 +281,19 @@ class EventStorageService: ObservableObject {
                     let domainCategory = CategoryManager.shared.getCategoryForChromeTab(domain: domain)
                     updatedEvent.category = domainCategory
                     print("EventStorageService: Updated category to '\(domainCategory.name)' for domain '\(domain)'")
+                    
+                    // Fetch favicon for the domain
+                    FaviconService.shared.fetchFavicon(for: domain) { [weak self] favicon in
+                        guard let self = self, let favicon = favicon else { return }
+                        
+                        // Update the event with the fetched favicon
+                        if let eventIndex = self.events.firstIndex(where: { $0.id == eventId }) {
+                            var faviconUpdatedEvent = self.events[eventIndex]
+                            faviconUpdatedEvent.siteFavicon = favicon
+                            self.events[eventIndex] = faviconUpdatedEvent
+                            print("EventStorageService: Updated favicon for domain '\(domain)'")
+                        }
+                    }
                 }
                 
                 self.events[index] = updatedEvent
@@ -311,6 +324,47 @@ class EventStorageService: ObservableObject {
             
             if updatedCount > 0 {
                 print("EventStorageService: Updated icons for \(updatedCount) events")
+            }
+        }
+    }
+    
+    /// Batch fetch favicons for Chrome events that don't have them
+    func backfillMissingFavicons() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Find Chrome events without favicons
+            let chromeEventsNeedingFavicons = self.events.filter { event in
+                event.bundleIdentifier == "com.google.Chrome" && 
+                event.siteFavicon == nil && 
+                event.siteDomain != nil
+            }
+            
+            guard !chromeEventsNeedingFavicons.isEmpty else {
+                print("EventStorageService: No Chrome events need favicon backfill")
+                return
+            }
+            
+            print("EventStorageService: Backfilling favicons for \(chromeEventsNeedingFavicons.count) Chrome events")
+            
+            // Group events by domain to avoid duplicate fetches
+            let eventsByDomain = Dictionary(grouping: chromeEventsNeedingFavicons) { $0.siteDomain! }
+            
+            for (domain, domainEvents) in eventsByDomain {
+                FaviconService.shared.fetchFavicon(for: domain) { [weak self] favicon in
+                    guard let self = self, let favicon = favicon else { return }
+                    
+                    // Update all events for this domain
+                    for event in domainEvents {
+                        if let index = self.events.firstIndex(where: { $0.id == event.id }) {
+                            var updatedEvent = self.events[index]
+                            updatedEvent.siteFavicon = favicon
+                            self.events[index] = updatedEvent
+                        }
+                    }
+                    
+                    print("EventStorageService: Backfilled favicon for \(domainEvents.count) events from '\(domain)'")
+                }
             }
         }
     }
