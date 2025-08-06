@@ -265,7 +265,7 @@ class EventStorageService: ObservableObject {
         }
     }
     
-    /// Update an existing event with Chrome tab data
+    /// Update an existing event with Chrome tab data and domain-based category
     func updateEventChromeData(eventId: UUID, tabTitle: String, tabUrl: String, siteDomain: String?) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -275,6 +275,14 @@ class EventStorageService: ObservableObject {
                 updatedEvent.chromeTabTitle = tabTitle
                 updatedEvent.chromeTabUrl = tabUrl
                 updatedEvent.siteDomain = siteDomain
+                
+                // Update category based on domain (if domain-specific category exists)
+                if let domain = siteDomain {
+                    let domainCategory = CategoryManager.shared.getCategoryForChromeTab(domain: domain)
+                    updatedEvent.category = domainCategory
+                    print("EventStorageService: Updated category to '\(domainCategory.name)' for domain '\(domain)'")
+                }
+                
                 self.events[index] = updatedEvent
                 
                 print("EventStorageService: Updated Chrome data for event \(eventId)")

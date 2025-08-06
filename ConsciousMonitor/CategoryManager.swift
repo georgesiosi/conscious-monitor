@@ -12,6 +12,7 @@ class CategoryManager: ObservableObject {
     private enum Keys {
         static let customCategoryNames = "customCategoryNames"
         static let appCategoryMappings = "appCategoryMappings"
+        static let domainCategoryMappings = "domainCategoryMappings"
     }
     
     // MARK: - Initialization
@@ -48,6 +49,26 @@ class CategoryManager: ObservableObject {
         }
         
         return .other
+    }
+    
+    /// Get category for a specific Chrome tab domain
+    func getCategoryForDomain(_ domain: String) -> AppCategory? {
+        let domainMappings = loadDomainCategoryMappings()
+        if let categoryName = domainMappings[domain.lowercased()] {
+            return allCategories.first(where: { $0.name == categoryName })
+        }
+        return nil
+    }
+    
+    /// Get category for Chrome tab with domain fallback
+    func getCategoryForChromeTab(domain: String?) -> AppCategory {
+        // First check if there's a domain-specific category
+        if let domain = domain, let domainCategory = getCategoryForDomain(domain) {
+            return domainCategory
+        }
+        
+        // Fall back to Chrome app category
+        return getCategory(for: "com.google.Chrome")
     }
     
     /// Add a new custom category
@@ -112,6 +133,20 @@ class CategoryManager: ObservableObject {
         var mappings = loadAppCategoryMappings()
         mappings.removeValue(forKey: bundleIdentifier)
         saveAppCategoryMappings(mappings)
+    }
+    
+    /// Set category for a specific domain (for Chrome tabs)
+    func setCategoryForDomain(_ domain: String, category: AppCategory) {
+        var mappings = loadDomainCategoryMappings()
+        mappings[domain.lowercased()] = category.name
+        saveDomainCategoryMappings(mappings)
+    }
+    
+    /// Remove category mapping for a specific domain (revert to Chrome app category)
+    func removeCategoryForDomain(_ domain: String) {
+        var mappings = loadDomainCategoryMappings()
+        mappings.removeValue(forKey: domain.lowercased())
+        saveDomainCategoryMappings(mappings)
     }
     
     // MARK: - Migration
@@ -212,6 +247,28 @@ class CategoryManager: ObservableObject {
             UserDefaults.standard.set(data, forKey: Keys.appCategoryMappings)
         } catch {
             print("CategoryManager: Error encoding app category mappings: \(error)")
+        }
+    }
+    
+    private func loadDomainCategoryMappings() -> [String: String] {
+        guard let data = UserDefaults.standard.data(forKey: Keys.domainCategoryMappings) else {
+            return [:]
+        }
+        
+        do {
+            return try JSONDecoder().decode([String: String].self, from: data)
+        } catch {
+            print("CategoryManager: Error decoding domain category mappings: \(error)")
+            return [:]
+        }
+    }
+    
+    private func saveDomainCategoryMappings(_ mappings: [String: String]) {
+        do {
+            let data = try JSONEncoder().encode(mappings)
+            UserDefaults.standard.set(data, forKey: Keys.domainCategoryMappings)
+        } catch {
+            print("CategoryManager: Error encoding domain category mappings: \(error)")
         }
     }
 }

@@ -4,6 +4,7 @@ struct ModernActivityView: View {
     @ObservedObject var activityMonitor: ActivityMonitor
     @State private var selectedView: ViewType = .chronological
     @State private var selectedEventForCategorization: AppActivationEvent?
+    @State private var selectedEventForDomainCategorization: AppActivationEvent?
     @State private var showDetailedStats = false
     
     // Search functionality
@@ -263,18 +264,31 @@ struct ModernActivityView: View {
                         LazyVStack(spacing: DesignSystem.Spacing.md) {
                             if selectedView == .chronological {
                                 ForEach(Array(paginatedEvents.enumerated()), id: \.element.id) { index, event in
-                                    ModernEventRow(event: event) {
-                                        selectedEventForCategorization = event
-                                    }
+                                    ModernEventRow(
+                                        event: event,
+                                        onTap: {
+                                            selectedEventForCategorization = event
+                                        },
+                                        onTabTitleTap: event.bundleIdentifier == "com.google.Chrome" ? {
+                                            selectedEventForDomainCategorization = event
+                                        } : nil
+                                    )
                                     .onAppear {
                                         checkForLoadMore(at: index)
                                     }
                                 }
                             } else {
                                 ForEach(sortedGroupedEvents, id: \.key) { appName, events in
-                                    ModernAppGroupCard(appName: appName, events: events) { event in
-                                        selectedEventForCategorization = event
-                                    }
+                                    ModernAppGroupCard(
+                                        appName: appName, 
+                                        events: events,
+                                        onEventTap: { event in
+                                            selectedEventForCategorization = event
+                                        },
+                                        onDomainTap: { event in
+                                            selectedEventForDomainCategorization = event
+                                        }
+                                    )
                                 }
                             }
                             
@@ -302,7 +316,10 @@ struct ModernActivityView: View {
             }
         }
         .sheet(item: $selectedEventForCategorization) { event in
-            CategoryPickerSheet(event: event, activityMonitor: activityMonitor)
+            CategoryPickerSheet(event: event, activityMonitor: activityMonitor, isDomainCategorization: false)
+        }
+        .sheet(item: $selectedEventForDomainCategorization) { event in
+            CategoryPickerSheet(event: event, activityMonitor: activityMonitor, isDomainCategorization: true)
         }
     }
     
@@ -458,9 +475,16 @@ struct ModernFocusStateCard: View {
 
 struct ModernEventRow: View {
     let event: AppActivationEvent
-    let onTap: () -> Void
+    let onTap: () -> Void // This will be for category badge clicks
+    let onTabTitleTap: (() -> Void)? // New: for Chrome tab title clicks
     @State private var isHovered = false
     @ObservedObject private var userSettings = UserSettings.shared
+    
+    init(event: AppActivationEvent, onTap: @escaping () -> Void, onTabTitleTap: (() -> Void)? = nil) {
+        self.event = event
+        self.onTap = onTap
+        self.onTabTitleTap = onTabTitleTap
+    }
     
     private var timeFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -468,9 +492,12 @@ struct ModernEventRow: View {
         return formatter
     }
     
+    private var isClickableTabTitle: Bool {
+        event.bundleIdentifier == "com.google.Chrome" && onTabTitleTap != nil
+    }
+    
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: DesignSystem.Spacing.md) {
+        HStack(spacing: DesignSystem.Spacing.md) {
                 // App icon
                 if event.bundleIdentifier == "com.google.Chrome" {
                     let chromeIcon = event.appIcon ?? NSImage(named: "chrome") ?? defaultAppIcon
@@ -492,10 +519,21 @@ struct ModernEventRow: View {
                 // Event details
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                     HStack {
-                        Text(event.displayName)
-                            .font(DesignSystem.Typography.body)
-                            .fontWeight(.medium)
-                            .foregroundColor(DesignSystem.Colors.primaryText)
+                        // Tab title - clickable for Chrome tabs to set domain category
+                        if isClickableTabTitle {
+                            Button(action: onTabTitleTap!) {
+                                Text(event.displayName)
+                                    .font(DesignSystem.Typography.body)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(DesignSystem.Colors.primaryText)
+                            }
+                            .buttonStyle(.plain)
+                        } else {
+                            Text(event.displayName)
+                                .font(DesignSystem.Typography.body)
+                                .fontWeight(.medium)
+                                .foregroundColor(DesignSystem.Colors.primaryText)
+                        }
                         
                         Spacer()
                         
@@ -505,29 +543,30 @@ struct ModernEventRow: View {
                     }
                     
                     HStack {
-                        // Category badge
-                        Text(event.displaySubtitle)
-                            .font(DesignSystem.Typography.caption2)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, DesignSystem.Spacing.sm)
-                            .padding(.vertical, 2)
-                            .background(event.category.color)
-                            .cornerRadius(4)
+                        // Category badge - clickable to set app/Chrome category
+                        Button(action: onTap) {
+                            Text(event.displaySubtitle)
+                                .font(DesignSystem.Typography.caption2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, DesignSystem.Spacing.sm)
+                                .padding(.vertical, 2)
+                                .background(event.category.color)
+                                .cornerRadius(4)
+                        }
+                        .buttonStyle(.plain)
                         
                         Spacer()
                     }
                 }
             }
-            .padding(DesignSystem.Spacing.md)
-            .background(isHovered ? DesignSystem.Colors.hoverBackground : DesignSystem.Colors.cardBackground)
-            .cornerRadius(DesignSystem.Layout.cornerRadius)
-            .overlay(
-                RoundedRectangle(cornerRadius: DesignSystem.Layout.cornerRadius)
-                    .stroke(DesignSystem.Colors.tertiaryText.opacity(0.1), lineWidth: 1)
-            )
-        }
-        .buttonStyle(.plain)
+        .padding(DesignSystem.Spacing.md)
+        .background(isHovered ? DesignSystem.Colors.hoverBackground : DesignSystem.Colors.cardBackground)
+        .cornerRadius(DesignSystem.Layout.cornerRadius)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignSystem.Layout.cornerRadius)
+                .stroke(DesignSystem.Colors.tertiaryText.opacity(0.1), lineWidth: 1)
+        )
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.2)) {
                 isHovered = hovering
@@ -550,6 +589,7 @@ struct ModernAppGroupCard: View {
     let appName: String
     let events: [AppActivationEvent]
     let onEventTap: (AppActivationEvent) -> Void
+    let onDomainTap: (AppActivationEvent) -> Void
     @State private var isExpanded = false
     
     var body: some View {
@@ -598,9 +638,15 @@ struct ModernAppGroupCard: View {
                 
                 LazyVStack(spacing: DesignSystem.Spacing.sm) {
                     ForEach(events) { event in
-                        ModernEventRow(event: event) {
-                            onEventTap(event)
-                        }
+                        ModernEventRow(
+                            event: event,
+                            onTap: {
+                                onEventTap(event)
+                            },
+                            onTabTitleTap: event.bundleIdentifier == "com.google.Chrome" ? {
+                                onDomainTap(event)
+                            } : nil
+                        )
                         .padding(.horizontal, DesignSystem.Spacing.md)
                     }
                 }
@@ -621,6 +667,7 @@ struct ModernAppGroupCard: View {
 struct CategoryPickerSheet: View {
     let event: AppActivationEvent
     let activityMonitor: ActivityMonitor
+    let isDomainCategorization: Bool
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -634,6 +681,7 @@ struct CategoryPickerSheet: View {
         CategoryPickerView(
             initialCategory: event.category,
             appToCategorize: chartDataForPicker,
+            chromeDomain: isDomainCategorization ? event.siteDomain : nil,
             onSave: { newCategory, bundleId in
                 if let validBundleId = bundleId, !validBundleId.isEmpty {
                     CategoryManager.shared.setCategoryForApp(bundleIdentifier: validBundleId, category: newCategory)
@@ -649,7 +697,23 @@ struct CategoryPickerSheet: View {
                     activityMonitor.refreshDueToCategoryChange()
                 }
                 dismiss()
-            }
+            },
+            onSaveDomain: isDomainCategorization ? { newCategory, domain in
+                // Save domain-specific category
+                CategoryManager.shared.setCategoryForDomain(domain, category: newCategory)
+                
+                // Update all Chrome events with this domain to use the new category
+                var updatedEvents = [AppActivationEvent]()
+                for var event in activityMonitor.activationEvents {
+                    if event.bundleIdentifier == "com.google.Chrome" && event.siteDomain == domain {
+                        event.category = newCategory
+                    }
+                    updatedEvents.append(event)
+                }
+                activityMonitor.activationEvents = updatedEvents
+                activityMonitor.refreshDueToCategoryChange()
+                dismiss()
+            } : nil
         )
     }
 }
