@@ -8,6 +8,193 @@ class CategoryManager: ObservableObject {
     @Published var customCategories: [AppCategory] = []
     @Published var allCategories: [AppCategory] = []
     
+    // MARK: - Default Domain Mappings
+    
+    /// Default domain categorization mappings (Domain -> AppCategory)
+    /// Similar to AppCategorizer.defaultCategoryMappings but for web domains
+    static let defaultDomainMappings: [String: AppCategory] = [
+        // Social Media
+        "facebook.com": .socialMedia,
+        "instagram.com": .socialMedia,
+        "twitter.com": .socialMedia,
+        "x.com": .socialMedia,
+        "linkedin.com": .socialMedia,
+        "reddit.com": .socialMedia,
+        "tiktok.com": .socialMedia,
+        "snapchat.com": .socialMedia,
+        "pinterest.com": .socialMedia,
+        "discord.com": .socialMedia,
+        "mastodon.social": .socialMedia,
+        "threads.net": .socialMedia,
+        
+        // Development
+        "github.com": .development,
+        "gitlab.com": .development,
+        "bitbucket.org": .development,
+        "stackoverflow.com": .development,
+        "stackexchange.com": .development,
+        "developer.mozilla.org": .development,
+        "docs.python.org": .development,
+        "nodejs.org": .development,
+        "codepen.io": .development,
+        "codesandbox.io": .development,
+        "replit.com": .development,
+        "jsbin.com": .development,
+        "jsfiddle.net": .development,
+        "glitch.com": .development,
+        "vercel.com": .development,
+        "netlify.com": .development,
+        "heroku.com": .development,
+        "aws.amazon.com": .development,
+        "console.cloud.google.com": .development,
+        "azure.microsoft.com": .development,
+        
+        // Productivity  
+        "google.com": .productivity,
+        "gmail.com": .productivity,
+        "drive.google.com": .productivity,
+        "docs.google.com": .productivity,
+        "sheets.google.com": .productivity,
+        "slides.google.com": .productivity,
+        "notion.so": .productivity,
+        "slack.com": .productivity,
+        "trello.com": .productivity,
+        "asana.com": .productivity,
+        "monday.com": .productivity,
+        "airtable.com": .productivity,
+        "office.com": .productivity,
+        "outlook.com": .productivity,
+        "teams.microsoft.com": .productivity,
+        "zoom.us": .productivity,
+        "meet.google.com": .productivity,
+        "calendly.com": .productivity,
+        "toggl.com": .productivity,
+        "todoist.com": .productivity,
+        "any.do": .productivity,
+        
+        // Entertainment
+        "youtube.com": .entertainment,
+        "netflix.com": .entertainment,
+        "hulu.com": .entertainment,
+        "primevideo.com": .entertainment,
+        "disneyplus.com": .entertainment,
+        "hbo.com": .entertainment,
+        "twitch.tv": .entertainment,
+        "spotify.com": .entertainment,
+        "music.apple.com": .entertainment,
+        "soundcloud.com": .entertainment,
+        "bandcamp.com": .entertainment,
+        "steamcommunity.com": .entertainment,
+        "itch.io": .entertainment,
+        "epicgames.com": .entertainment,
+        "battle.net": .entertainment,
+        "minecraft.net": .entertainment,
+        
+        // News & Information
+        "cnn.com": .news,
+        "bbc.com": .news,
+        "nytimes.com": .news,
+        "theguardian.com": .news,
+        "washingtonpost.com": .news,
+        "reuters.com": .news,
+        "ap.org": .news,
+        "npr.org": .news,
+        "techcrunch.com": .news,
+        "arstechnica.com": .news,
+        "wired.com": .news,
+        "theverge.com": .news,
+        "engadget.com": .news,
+        "hackernews.ycombinator.com": .news,
+        "news.ycombinator.com": .news,
+        
+        // Shopping
+        "amazon.com": .shopping,
+        "ebay.com": .shopping,
+        "etsy.com": .shopping,
+        "alibaba.com": .shopping,
+        "shopify.com": .shopping,
+        "walmart.com": .shopping,
+        "target.com": .shopping,
+        "bestbuy.com": .shopping,
+        "apple.com": .shopping,
+        "newegg.com": .shopping,
+        "aliexpress.com": .shopping,
+        
+        // Education
+        "coursera.org": .education,
+        "udemy.com": .education,
+        "khanacademy.org": .education,
+        "edx.org": .education,
+        "pluralsight.com": .education,
+        "skillshare.com": .education,
+        "codecademy.com": .education,
+        "freecodecamp.org": .education,
+        "duolingo.com": .education,
+        "brilliant.org": .education,
+        "masterclass.com": .education,
+        
+        // Knowledge Management & Reference
+        "wikipedia.org": .knowledgeManagement,
+        "archive.org": .knowledgeManagement,
+        "medium.com": .knowledgeManagement,
+        "substack.com": .knowledgeManagement,
+        "dev.to": .knowledgeManagement,
+        "hashnode.com": .knowledgeManagement,
+        "confluence.atlassian.com": .knowledgeManagement,
+        "gitbook.com": .knowledgeManagement,
+        "readthedocs.io": .knowledgeManagement,
+        
+        // Finance
+        "mint.com": .finance,
+        "ynab.com": .finance,
+        "personalcapital.com": .finance,
+        "robinhood.com": .finance,
+        "fidelity.com": .finance,
+        "schwab.com": .finance,
+        "vanguard.com": .finance,
+        "coinbase.com": .finance,
+        "blockchain.com": .finance,
+        
+        // Design
+        "figma.com": .design,
+        "sketch.com": .design,
+        "adobe.com": .design,
+        "canva.com": .design,
+        "dribbble.com": .design,
+        "behance.net": .design,
+        "unsplash.com": .design,
+        "pexels.com": .design,
+        
+        // Travel
+        "booking.com": .travel,
+        "airbnb.com": .travel,
+        "expedia.com": .travel,
+        "tripadvisor.com": .travel,
+        "kayak.com": .travel,
+        "maps.google.com": .travel,
+        "uber.com": .travel,
+        "lyft.com": .travel,
+        
+        // Health & Fitness
+        "myfitnesspal.com": .health,
+        "strava.com": .health,
+        "fitbit.com": .health,
+        "headspace.com": .health,
+        "calm.com": .health,
+        
+        // Communication (Web-based)
+        "web.whatsapp.com": .communication,
+        "web.telegram.org": .communication,
+        "hangouts.google.com": .communication,
+        "messenger.com": .communication,
+        
+        // Utilities
+        "translate.google.com": .utilities,
+        "weather.com": .utilities,
+        "speedtest.net": .utilities,
+        "downdetector.com": .utilities,
+    ]
+    
     // MARK: - UserDefaults Keys
     private enum Keys {
         static let customCategoryNames = "customCategoryNames"
@@ -53,10 +240,28 @@ class CategoryManager: ObservableObject {
     
     /// Get category for a specific Chrome tab domain
     func getCategoryForDomain(_ domain: String) -> AppCategory? {
+        let domainKey = domain.lowercased()
+        
+        // Check user-defined mappings first (highest priority)
         let domainMappings = loadDomainCategoryMappings()
-        if let categoryName = domainMappings[domain.lowercased()] {
+        if let categoryName = domainMappings[domainKey] {
             return allCategories.first(where: { $0.name == categoryName })
         }
+        
+        // Fall back to default domain mappings
+        if let defaultCategory = Self.defaultDomainMappings[domainKey] {
+            return defaultCategory
+        }
+        
+        // Check for subdomain patterns (e.g., "docs.google.com" → "google.com")
+        let components = domainKey.components(separatedBy: ".")
+        if components.count > 2 {
+            let rootDomain = components.suffix(2).joined(separator: ".")
+            if let defaultCategory = Self.defaultDomainMappings[rootDomain] {
+                return defaultCategory
+            }
+        }
+        
         return nil
     }
     
