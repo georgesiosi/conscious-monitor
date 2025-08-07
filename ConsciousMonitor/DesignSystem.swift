@@ -95,7 +95,7 @@ struct DesignSystem {
         // Page layout standards
         static let pageHeaderPadding: CGFloat = 40  // 40pt top padding for page headers
         static let contentPadding: CGFloat = 40     // 40pt for general content
-        static let sectionSpacing: CGFloat = 32     // 32pt between major sections
+        static let sectionSpacing: CGFloat = 18     // 18pt between major sections
         static let titleSpacing: CGFloat = 12       // 12pt below titles
     }
     
