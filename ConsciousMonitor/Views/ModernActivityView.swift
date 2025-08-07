@@ -475,8 +475,8 @@ struct ModernFocusStateCard: View {
 
 struct ModernEventRow: View {
     let event: AppActivationEvent
-    let onTap: () -> Void // This will be for category badge clicks
-    let onTabTitleTap: (() -> Void)? // New: for Chrome tab title clicks
+    let onTap: () -> Void // App categorization callback
+    let onTabTitleTap: (() -> Void)? // Domain categorization callback (Chrome only)
     @State private var isHovered = false
     @ObservedObject private var userSettings = UserSettings.shared
     
@@ -532,21 +532,11 @@ struct ModernEventRow: View {
                 // Event details
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                     HStack {
-                        // Tab title - clickable for Chrome tabs to set domain category
-                        if isClickableTabTitle {
-                            Button(action: onTabTitleTap!) {
-                                Text(event.displayName)
-                                    .font(DesignSystem.Typography.body)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(DesignSystem.Colors.primaryText)
-                            }
-                            .buttonStyle(.plain)
-                        } else {
-                            Text(event.displayName)
-                                .font(DesignSystem.Typography.body)
-                                .fontWeight(.medium)
-                                .foregroundColor(DesignSystem.Colors.primaryText)
-                        }
+                        // Event display name (no longer clickable)
+                        Text(event.displayName)
+                            .font(DesignSystem.Typography.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(DesignSystem.Colors.primaryText)
                         
                         Spacer()
                         
@@ -556,18 +546,15 @@ struct ModernEventRow: View {
                     }
                     
                     HStack {
-                        // Category badge - clickable to set app/Chrome category
-                        Button(action: onTap) {
-                            Text(event.displaySubtitle)
-                                .font(DesignSystem.Typography.caption2)
-                                .fontWeight(.medium)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, DesignSystem.Spacing.sm)
-                                .padding(.vertical, 2)
-                                .background(event.category.color)
-                                .cornerRadius(4)
-                        }
-                        .buttonStyle(.plain)
+                        // Category badge (no longer clickable - context menu handles categorization)
+                        Text(event.displaySubtitle)
+                            .font(DesignSystem.Typography.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, DesignSystem.Spacing.sm)
+                            .padding(.vertical, 2)
+                            .background(event.category.color)
+                            .cornerRadius(4)
                         
                         Spacer()
                     }
@@ -583,6 +570,27 @@ struct ModernEventRow: View {
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.2)) {
                 isHovered = hovering
+            }
+        }
+        .contextMenu {
+            if event.bundleIdentifier == "com.google.Chrome" {
+                // Chrome-specific context menu with dual categorization options
+                Button("Categorize Chrome App") {
+                    onTap() // Existing app categorization callback
+                }
+                
+                if let domain = event.siteDomain, !domain.isEmpty {
+                    Button("Categorize \(domain)") {
+                        onTabTitleTap?() // Domain categorization callback
+                    }
+                }
+                
+                Divider()
+            }
+            
+            // Standard categorization option for all apps
+            Button("Categorize App") {
+                onTap()
             }
         }
     }

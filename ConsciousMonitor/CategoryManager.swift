@@ -154,6 +154,16 @@ class CategoryManager: ObservableObject {
         "vanguard.com": .finance,
         "coinbase.com": .finance,
         "blockchain.com": .finance,
+        "xero.com": .finance,
+        "quickbooks.intuit.com": .finance,
+        "freshbooks.com": .finance,
+        "wave.com": .finance,
+        "stripe.com": .finance,
+        "paypal.com": .finance,
+        "square.com": .finance,
+        "bankofamerica.com": .finance,
+        "chase.com": .finance,
+        "wellsfargo.com": .finance,
         
         // Design
         "figma.com": .design,
