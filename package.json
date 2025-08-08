@@ -1,13 +1,13 @@
 {
-  "name": "@cs/focus-monitor",
+  "name": "@cstack/conscious-monitor",
   "version": "1.0.0",
   "private": true,
-  "description": "FocusMonitor - Behavioral tracking application for macOS",
+  "description": "ConsciousMonitor - Behavioral tracking application for macOS",
   "scripts": {
-    "dev": "echo 'FocusMonitor is a macOS app. Open FocusMonitor.xcodeproj in Xcode to run in development mode.'",
-    "build": "xcodebuild -project FocusMonitor.xcodeproj -scheme FocusMonitor -configuration Release -derivedDataPath build",
-    "clean": "xcodebuild -project FocusMonitor.xcodeproj -scheme FocusMonitor clean",
-    "test": "xcodebuild -project FocusMonitor.xcodeproj -scheme FocusMonitor test",
+    "dev": "echo 'ConsciousMonitor is a macOS app. Open ConsciousMonitor.xcodeproj in Xcode to run in development mode.'",
+    "build": "xcodebuild -project ConsciousMonitor.xcodeproj -scheme ConsciousMonitor -configuration Release -derivedDataPath build",
+    "clean": "xcodebuild -project ConsciousMonitor.xcodeproj -scheme ConsciousMonitor clean",
+    "test": "xcodebuild -project ConsciousMonitor.xcodeproj -scheme ConsciousMonitor test",
     "lint": "echo 'Swift linting not configured. Use SwiftLint if needed.'"
   },
   "keywords": [
