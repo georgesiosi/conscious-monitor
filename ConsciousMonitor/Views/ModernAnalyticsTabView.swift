@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ModernAnalyticsTabView: View {
+struct AnalyticsTabView: View {
     @ObservedObject var activityMonitor: ActivityMonitor
     @State private var selectedSegment: AnalyticsSegment = .overview
     
@@ -612,5 +612,5 @@ struct CollapsibleAnalyticsSection<Content: View>: View {
 }
 
 #Preview {
-    ModernAnalyticsTabView(activityMonitor: ActivityMonitor())
+    AnalyticsTabView(activityMonitor: ActivityMonitor())
 }

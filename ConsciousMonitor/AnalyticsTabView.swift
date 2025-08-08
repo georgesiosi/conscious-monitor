@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct AnalyticsTabView: View {
+struct LegacyAnalyticsTabView: View {
     @ObservedObject var activityMonitor: ActivityMonitor
     @State private var selectedSegment: AnalyticsSegment = .switchAnalytics
     
@@ -258,5 +258,5 @@ struct CostDetailRow: View {
 }
 
 #Preview {
-    AnalyticsTabView(activityMonitor: ActivityMonitor())
+    LegacyAnalyticsTabView(activityMonitor: ActivityMonitor())
 }

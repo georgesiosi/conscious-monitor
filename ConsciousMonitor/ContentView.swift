@@ -29,7 +29,7 @@ struct ContentView: View {
                     .tag(Tab.activity.rawValue)
                 
                 // Tab 2: Analytics (Consolidated)
-                ModernAnalyticsTabView(activityMonitor: activityMonitor)
+                AnalyticsTabView(activityMonitor: activityMonitor)
                     .tabItem {
                         Label("Analytics", systemImage: "chart.bar")
                     }

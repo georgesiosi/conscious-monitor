@@ -258,14 +258,33 @@ struct SharePreviewView: View {
             Text(title)
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.secondaryText)
-            Text(timeRangeDescription(data))
-                .font(DesignSystem.Typography.body)
-                .fontWeight(.medium)
-                .foregroundColor(DesignSystem.Colors.primaryText)
         }
         .padding(DesignSystem.Spacing.md)
         .background(DesignSystem.Colors.cardBackground)
         .cornerRadius(12)
+    }
+
+    // MARK: - Data Generation
+    private func generatePreviewData() {
+        isLoading = true
+        errorMessage = nil
+        
+        Task {
+            let service = ShareableStackService()
+            let data = service.generateShareableData(
+                from: events,
+                contextSwitches: contextSwitches,
+                timeRange: timeRange,
+                customStartDate: customStartDate,
+                customEndDate: customEndDate,
+                privacyLevel: privacyLevel
+            )
+            
+            await MainActor.run {
+                self.shareableData = data
+                self.isLoading = false
+            }
+        }
     }
     
     @MainActor
