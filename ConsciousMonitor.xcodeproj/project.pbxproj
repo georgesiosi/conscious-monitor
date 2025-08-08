@@ -186,10 +186,11 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
+				"$(DERIVED_FILE_DIR)/xattr_strip.stamp",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\nAPP_BUNDLE=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}\"\nif [ -d \"$APP_BUNDLE\" ]; then\n  echo \"Stripping extended attributes from $APP_BUNDLE\"\n  /usr/bin/xattr -cr \"$APP_BUNDLE\" || true\nfi\n";
+			shellScript = "set -e\n# Only run when codesigning is enabled\nif [ \"${CODE_SIGNING_ALLOWED}\" = \"YES\" ] || [ \"${CODE_SIGNING_REQUIRED}\" = \"YES\" ]; then\n  TARGET_PATH=\"${CODESIGNING_FOLDER_PATH:-${TARGET_BUILD_DIR}/${WRAPPER_NAME}}\"\n  if [ -d \"$TARGET_PATH\" ]; then\n    echo \"Stripping extended attributes from $TARGET_PATH\"\n    /usr/bin/xattr -cr \"$TARGET_PATH\" || true\n  fi\n  # Emit stamp to satisfy Xcode's dependency analysis\n  /usr/bin/mkdir -p \"${DERIVED_FILE_DIR}\"\n  /usr/bin/touch \"${DERIVED_FILE_DIR}/xattr_strip.stamp\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
