@@ -107,6 +107,7 @@
 				F605CECE2DCA87EF00FDFE87 /* Sources */,
 				F605CECF2DCA87EF00FDFE87 /* Frameworks */,
 				F605CED02DCA87EF00FDFE87 /* Resources */,
+				F6AABBCD2DCA880000FDFE87 /* Strip Extended Attributes */,
 			);
 			buildRules = (
 			);
@@ -170,6 +171,27 @@
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		F6AABBCD2DCA880000FDFE87 /* Strip Extended Attributes */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Strip Extended Attributes";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\nAPP_BUNDLE=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}\"\nif [ -d \"$APP_BUNDLE\" ]; then\n  echo \"Stripping extended attributes from $APP_BUNDLE\"\n  /usr/bin/xattr -cr \"$APP_BUNDLE\" || true\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXProject section */
 		F605CECA2DCA87EF00FDFE87 /* Project object */ = {

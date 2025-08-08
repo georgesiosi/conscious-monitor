@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "echo 'ConsciousMonitor is a macOS app. Open ConsciousMonitor.xcodeproj in Xcode to run in development mode.'",
     "build": "xcodebuild -project ConsciousMonitor.xcodeproj -scheme ConsciousMonitor -configuration Release -derivedDataPath build",
+    "build:unsigned": "xcodebuild -project ConsciousMonitor.xcodeproj -scheme ConsciousMonitor -configuration Release -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO",
     "clean": "xcodebuild -project ConsciousMonitor.xcodeproj -scheme ConsciousMonitor clean",
     "test": "xcodebuild -project ConsciousMonitor.xcodeproj -scheme ConsciousMonitor test",
+    "test:unsigned": "xcodebuild -project ConsciousMonitor.xcodeproj -scheme ConsciousMonitor -configuration Debug -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO test",
     "lint": "echo 'Swift linting not configured. Use SwiftLint if needed.'"
   },
   "keywords": [
