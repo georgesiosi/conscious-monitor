@@ -1,6 +1,6 @@
 # Project Scratchpad
 
-- Last updated: 2025-08-07 20:57:00 -06:00
+- Last updated: 2025-08-08 00:02:01 -06:00
 - Mode: Planner
 
 ## Active Planning Tasks
@@ -12,6 +12,10 @@
 2) Xcode run: sandbox xattr denial triage
    - Implementation plan: `docs/implementation-plan/xcode-sandbox-xattr-deny.md`
    - Goal: Ensure app launches cleanly from Xcode. Determine if the `Sandbox: xattr(...) deny(1) file-read-data` message is benign or symptomatic, and eliminate any misconfiguration causing it.
+
+3) UI consistency audit and remediation
+    - Implementation plan: `docs/implementation-plan/ui-consistency-audit.md`
+    - Goal: Normalize styling to `DesignSystem` tokens, unify page background semantics, fix chart label contrast, standardize icon sizing and hover states, and resolve naming drift in Modern* components.
 
 ## Notes & Insights
 
