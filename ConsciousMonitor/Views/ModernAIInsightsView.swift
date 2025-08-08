@@ -886,9 +886,7 @@ struct EnhancedAnalysisDetailView: View {
                 maxHeight: .infinity
             )
         }
-            idealHeight: 700,
-            maxHeight: .infinity
-        )
+        
     }
     
     private func exportAnalysis(format: DataExportService.ExportFormat) {
