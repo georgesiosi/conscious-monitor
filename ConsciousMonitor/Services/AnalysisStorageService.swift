@@ -41,6 +41,8 @@ class AnalysisStorageService: ObservableObject, @unchecked Sendable {
             case .recoveryFailed(let message):
                 return "Recovery failed: \(message)"
             }
+        }
+    }
 
     // MARK: - Legacy Migration (FocusMonitor -> ConsciousMonitor)
     private func migrateLegacyAnalysesIfNeeded(appSupportDir: URL) {
@@ -86,8 +88,6 @@ class AnalysisStorageService: ObservableObject, @unchecked Sendable {
                     }
                 }
             }
-        }
-    }
         }
     }
     
