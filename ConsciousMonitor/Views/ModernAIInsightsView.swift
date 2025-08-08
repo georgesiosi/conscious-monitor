@@ -462,7 +462,7 @@ struct NoDataCard: View {
                     .font(DesignSystem.Typography.body)
                     .foregroundColor(DesignSystem.Colors.secondaryText)
                 
-                Text("Use your Mac normally and FocusMonitor will collect data for meaningful AI insights about your productivity patterns.")
+                Text("Use your Mac normally and ConsciousMonitor will collect data for meaningful AI insights about your productivity patterns.")
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.tertiaryText)
             }

@@ -107,6 +107,7 @@
 				F605CECE2DCA87EF00FDFE87 /* Sources */,
 				F605CECF2DCA87EF00FDFE87 /* Frameworks */,
 				F605CED02DCA87EF00FDFE87 /* Resources */,
+				F6AABBCD2DCA880000FDFE87 /* Strip Extended Attributes */,
 			);
 			buildRules = (
 			);
@@ -170,6 +171,28 @@
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		F6AABBCD2DCA880000FDFE87 /* Strip Extended Attributes */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Strip Extended Attributes";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/xattr_strip.stamp",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\n# Only run when codesigning is enabled\nif [ \"${CODE_SIGNING_ALLOWED}\" = \"YES\" ] || [ \"${CODE_SIGNING_REQUIRED}\" = \"YES\" ]; then\n  TARGET_PATH=\"${CODESIGNING_FOLDER_PATH:-${TARGET_BUILD_DIR}/${WRAPPER_NAME}}\"\n  if [ -d \"$TARGET_PATH\" ]; then\n    echo \"Stripping extended attributes from $TARGET_PATH\"\n    /usr/bin/xattr -cr \"$TARGET_PATH\" || true\n  fi\n  # Emit stamp to satisfy Xcode's dependency analysis\n  /usr/bin/mkdir -p \"${DERIVED_FILE_DIR}\"\n  /usr/bin/touch \"${DERIVED_FILE_DIR}/xattr_strip.stamp\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXProject section */
 		F605CECA2DCA87EF00FDFE87 /* Project object */ = {
@@ -398,7 +421,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = ConsciousMonitor/FocusMonitor.entitlements;
+				CODE_SIGN_ENTITLEMENTS = ConsciousMonitor/ConsciousMonitor.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3R57JS3CYJ;
@@ -423,7 +446,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.FocusMonitor;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cstack.ConsciousMonitor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -440,7 +463,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = ConsciousMonitor/FocusMonitor.entitlements;
+				CODE_SIGN_ENTITLEMENTS = ConsciousMonitor/ConsciousMonitor.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3R57JS3CYJ;
@@ -465,7 +488,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.FocusMonitor;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cstack.ConsciousMonitor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -487,7 +510,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "gsd.FocusMonitor-v0Tests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.cstack.ConsciousMonitorTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -509,7 +532,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "gsd.FocusMonitor-v0Tests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.cstack.ConsciousMonitorTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -530,7 +553,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "gsd.FocusMonitor-v0UITests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.cstack.ConsciousMonitorUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -551,7 +574,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "gsd.FocusMonitor-v0UITests";
+				PRODUCT_BUNDLE_IDENTIFIER = com.cstack.ConsciousMonitorUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";

@@ -131,7 +131,7 @@ struct SettingsWithSaveView: View {
                                     Toggle("Auto-hide when main window is active", isOn: $userSettings.floatingBarAutoHide)
                                         .font(.caption)
                                         .padding(.leading, 20)
-                                        .help("Automatically hide the floating bar when the main FocusMonitor window is active")
+                                        .help("Automatically hide the floating bar when the main ConsciousMonitor window is active")
                                     
                                     // Keyboard shortcut info
                                     HStack {

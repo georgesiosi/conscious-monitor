@@ -313,14 +313,14 @@ struct ProductivityGainsCard: View {
                 .foregroundColor(DesignSystem.Colors.secondaryText)
                 .multilineTextAlignment(.center)
             
-            Text("Continue using FocusMonitor to track your progress")
+            Text("Continue using ConsciousMonitor to track your progress")
                 .font(DesignSystem.Typography.caption2)
                 .foregroundColor(DesignSystem.Colors.tertiaryText)
                 .multilineTextAlignment(.center)
         }
         .padding(.horizontal, DesignSystem.Spacing.md)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Insufficient data available. Continue using FocusMonitor to track productivity gains.")
+        .accessibilityLabel("Insufficient data available. Continue using ConsciousMonitor to track productivity gains.")
     }
     
     // MARK: - Private Methods

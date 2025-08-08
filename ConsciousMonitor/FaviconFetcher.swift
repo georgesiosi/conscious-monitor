@@ -6,14 +6,28 @@ class FaviconFetcher: ObservableObject {
     private var cache = [String: NSImage]()
     private var cancellables = Set<AnyCancellable>()
     private let diskCacheURL: URL
+    private let legacyDiskCacheURL: URL
 
     private init() {
         // Create favicon cache directory
         let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        diskCacheURL = appSupportURL.appendingPathComponent("FocusMonitor").appendingPathComponent("FaviconCache")
+        diskCacheURL = appSupportURL.appendingPathComponent("ConsciousMonitor").appendingPathComponent("FaviconCache")
+        legacyDiskCacheURL = appSupportURL.appendingPathComponent("FocusMonitor").appendingPathComponent("FaviconCache")
         
         do {
-            try FileManager.default.createDirectory(at: diskCacheURL, withIntermediateDirectories: true, attributes: nil)
+            let fm = FileManager.default
+            try fm.createDirectory(at: diskCacheURL, withIntermediateDirectories: true, attributes: nil)
+            // Minimal migration: copy legacy cached icons if new cache is empty
+            if fm.fileExists(atPath: legacyDiskCacheURL.path) {
+                let newIsEmpty = (try? fm.contentsOfDirectory(atPath: diskCacheURL.path).isEmpty) ?? true
+                if newIsEmpty, let items = try? fm.contentsOfDirectory(atPath: legacyDiskCacheURL.path) {
+                    for item in items where item.hasSuffix(".png") {
+                        let src = legacyDiskCacheURL.appendingPathComponent(item)
+                        let dst = diskCacheURL.appendingPathComponent(item)
+                        _ = try? fm.copyItem(at: src, to: dst)
+                    }
+                }
+            }
         } catch {
             print("Failed to create favicon cache directory: \(error)")
         }

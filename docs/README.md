@@ -1,6 +1,6 @@
-# FocusMonitor
+# ConsciousMonitor
 
-FocusMonitor is a macOS application designed to track and analyze your app usage patterns, helping you understand your work habits and improve productivity by reducing context switching.
+ConsciousMonitor is a macOS application designed to track and analyze your app usage patterns, helping you understand your work habits and improve productivity by reducing context switching.
 
 ## Features
 
@@ -13,7 +13,7 @@ FocusMonitor is a macOS application designed to track and analyze your app usage
 
 ## Screenshots
 
-![FocusMonitor Main Screen](../screenshots/main_screen.png)
+![ConsciousMonitor Main Screen](../screenshots/main_screen.png)
 *Main activity tracking screen showing recent app activations*
 
 ![Analytics View](../screenshots/analytics.png)
@@ -25,7 +25,7 @@ See the [Setup Guide](SETUP.md) for installation instructions.
 
 ## Architecture
 
-FocusMonitor is built with SwiftUI and follows a modern architecture pattern. For more details on the codebase organization and design patterns, see the [Architecture Documentation](ARCHITECTURE.md).
+ConsciousMonitor is built with SwiftUI and follows a modern architecture pattern. For more details on the codebase organization and design patterns, see the [Architecture Documentation](ARCHITECTURE.md).
 
 ## Key Components
 

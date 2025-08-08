@@ -284,7 +284,7 @@ class ShareableStackServiceTests: XCTestCase {
     - Async operations complete properly
  
  To run manual tests:
- 1. Open FocusMonitor.xcodeproj in Xcode
+ 1. Open ConsciousMonitor.xcodeproj in Xcode
  2. Build and run the application
  3. Navigate to Analytics tab
  4. Click "Share Focus Stack" button

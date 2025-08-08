@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Accessibility Enhancements
 
-/// Accessibility utilities and enhancements for FocusMonitor
+/// Accessibility utilities and enhancements for ConsciousMonitor
 struct AccessibilityUtils {
     
     // MARK: - Semantic Labels

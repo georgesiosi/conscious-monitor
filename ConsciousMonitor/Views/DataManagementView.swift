@@ -241,7 +241,7 @@ struct DataManagementView: View {
                 }
                 .buttonStyle(.bordered)
                 
-                Text("Open the folder containing your FocusMonitor data files.")
+                Text("Open the folder containing your ConsciousMonitor data files.")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 

@@ -10,7 +10,7 @@ class DataStorage {
     private let appDir: URL
     
     // Serial queue for thread-safe file operations
-    private let fileQueue = DispatchQueue(label: "com.focusmonitor.dataStorage", qos: .utility)
+    private let fileQueue = DispatchQueue(label: "com.consciousmonitor.dataStorage", qos: .utility)
     
     // Data validation and error handling
     enum DataStorageError: Error {
@@ -39,7 +39,7 @@ class DataStorage {
             fatalError("Unable to get Application Support directory.")
         }
         
-        let bundleID = Bundle.main.bundleIdentifier ?? "com.example.FocusMonitor"
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.example.ConsciousMonitor"
         let appDir = appSupportDir.appendingPathComponent(bundleID, isDirectory: true)
         
         // Create the app-specific directory if it doesn't exist

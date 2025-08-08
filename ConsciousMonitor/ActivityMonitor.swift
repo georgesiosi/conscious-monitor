@@ -44,7 +44,7 @@ class ActivityMonitor: ObservableObject {
     // Removed debouncing infrastructure - now using immediate saves
     
     // Thread safety
-    private let dataQueue = DispatchQueue(label: "com.focusmonitor.activityMonitor", qos: .utility)
+    private let dataQueue = DispatchQueue(label: "com.consciousmonitor.activityMonitor", qos: .utility)
     
     // Data management
     private var cleanupTimer: Timer?

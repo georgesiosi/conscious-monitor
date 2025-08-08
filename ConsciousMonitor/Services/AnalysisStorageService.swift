@@ -13,7 +13,7 @@ class AnalysisStorageService: ObservableObject, @unchecked Sendable {
     private let appDir: URL
     
     // Serial queue for thread-safe file operations
-    private let fileQueue = DispatchQueue(label: "com.focusmonitor.analysisStorage", qos: .utility)
+    private let fileQueue = DispatchQueue(label: "com.consciousmonitor.analysisStorage", qos: .utility)
     
     // Backup configuration
     private let maxBackupsPerFile: Int = 3
@@ -53,7 +53,7 @@ class AnalysisStorageService: ObservableObject, @unchecked Sendable {
         }
         
         // Use the same directory as DataStorage for consistency
-        let bundleID = Bundle.main.bundleIdentifier ?? "com.example.FocusMonitor"
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.example.ConsciousMonitor"
         let appDir = appSupportDir.appendingPathComponent(bundleID, isDirectory: true)
         
         
