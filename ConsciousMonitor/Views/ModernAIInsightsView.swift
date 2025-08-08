@@ -1,7 +1,7 @@
 import SwiftUI
 import MarkdownUI
 
-struct ModernAIInsightsView: View {
+struct AIInsightsView: View {
     @ObservedObject var activityMonitor: ActivityMonitor
     @ObservedObject var userSettings = UserSettings.shared
     @StateObject private var analysisStorage = AnalysisStorageService.shared
@@ -935,5 +935,5 @@ struct MetadataCard: View {
 }
 
 #Preview {
-    ModernAIInsightsView(activityMonitor: ActivityMonitor())
+    AIInsightsView(activityMonitor: ActivityMonitor())
 }

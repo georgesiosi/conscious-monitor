@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ModernActivityView: View {
+struct ActivityView: View {
     @ObservedObject var activityMonitor: ActivityMonitor
     @State private var selectedView: ViewType = .chronological
     @State private var selectedEventForCategorization: AppActivationEvent?
@@ -810,5 +810,5 @@ struct SearchResultsHeader: View {
 }
 
 #Preview {
-    ModernActivityView(activityMonitor: ActivityMonitor())
+    ActivityView(activityMonitor: ActivityMonitor())
 }

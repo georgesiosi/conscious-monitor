@@ -76,7 +76,7 @@ A design system (`ConsciousMonitor/DesignSystem.swift`) exists and is widely use
 - [x] EventRow hover background applied
 - [x] Background token unified across top-level views
 - [ ] Token semantics decision documented and enforced
-- [ ] Modern* naming drift resolved
+- [ ] Modern* naming drift resolved (partial: ModernActivityView → ActivityView, ModernAIInsightsView → AIInsightsView; ModernAnalyticsTabView pending due to name collision with existing AnalyticsTabView)
 - [ ] Accessibility approach for stat cards decided and applied
 - [ ] UI PR checklist added
 

@@ -22,7 +22,7 @@ struct ContentView: View {
         ZStack {
             TabView(selection: $selectedTab) {
                 // Tab 1: Activity Log
-                ModernActivityView(activityMonitor: activityMonitor)
+                ActivityView(activityMonitor: activityMonitor)
                     .tabItem {
                         Label("Activity", systemImage: "list.bullet")
                     }
@@ -43,7 +43,7 @@ struct ContentView: View {
                     .tag(Tab.stackHealth.rawValue)
                 
                 // Tab 4: AI Insights
-                ModernAIInsightsView(activityMonitor: activityMonitor)
+                AIInsightsView(activityMonitor: activityMonitor)
                     .tabItem {
                         Label("Insights", systemImage: "brain.head.profile")
                     }
