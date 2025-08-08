@@ -9,24 +9,28 @@ ConsciousMonitor (formerly FocusMonitor) is a native macOS application built wit
 ## Development Commands
 
 ### Building and Running
+
 - **Build and run**: Open `ConsciousMonitor.xcodeproj` in Xcode, select the ConsciousMonitor scheme and "My Mac" as destination, then click Run
 - **Archive for distribution**: Product → Archive in Xcode
 - **Create DMG installer**: `./create-installer.sh` (requires `create-dmg` via Homebrew)
 - **Version management**: `./bump-version.sh [major|minor|patch]`
 
 ### Release Management
+
 - **DMG Creation**: Run `./create-installer.sh` after building (requires `brew install create-dmg`)
 - **Distribution preparation**: Ensure releases/ directory is gitignored
 - **GitHub Release Process**: Tag → DMG → Upload → Publish
 - **Release naming**: Use standard `v1.0.0` format
 
 ### Release & Distribution
+
 - **Branch strategy**: Use trunk-based development with `main` as single source of truth
 - **Releases**: Create git tags for stable releases (e.g., `v1.0.0`, `v1.1.0`)
 - **Distribution**: DMG files can be created directly from tagged commits
 - **No separate prod branch**: Deploy and distribute from `main` using tags
 
 #### GitHub Release Workflow
+
 1. **Create and push tag**: `git tag v1.0.0 && git push origin v1.0.0`
 2. **Go to GitHub**: Visit repository releases page
 3. **Create new release**: Select the tag, title as "ConsciousMonitor v1.0.0"
@@ -35,11 +39,13 @@ ConsciousMonitor (formerly FocusMonitor) is a native macOS application built wit
 6. **Publish**: Users get direct download link for the DMG
 
 ### Testing
+
 - **Run tests**: Use Xcode's Test navigator or Cmd+U
 - **Testing framework**: Uses Swift Testing (not XCTest)
 - **Test targets**: `ConsciousMonitor-Tests` (unit tests), `ConsciousMonitor-UITests` (UI tests)
 
 ### Development Workflow Best Practices
+
 - **Warning Management**: Use `let _ = variable` pattern for intentionally unused variables
 - **Enum Completeness**: Always handle all cases in switch statements or add default cases
 - **Service Integration**: When adding new features, leverage existing service infrastructure rather than creating parallel systems
@@ -50,12 +56,14 @@ ConsciousMonitor (formerly FocusMonitor) is a native macOS application built wit
 ## Architecture
 
 ### Core Architecture Pattern
+
 - **MVVM**: Model-View-ViewModel using SwiftUI's reactive programming
 - **Central ViewModel**: `ActivityMonitor` serves as the primary view model tracking app activations
 - **Data Layer**: `DataStorage.shared` singleton handles JSON file persistence
 - **Services**: External integrations (Chrome, OpenAI) handled by dedicated service classes
 
 ### Key Components
+
 - **ActivityMonitor.swift**: Central view model tracking app activations and context switches
 - **ContentView.swift**: Main tabbed UI (Activity, Analytics, Usage Stack, AI Insights, Settings)
 - **DataStorage.swift**: File-based persistence to `~/Library/Application Support/`
@@ -63,13 +71,15 @@ ConsciousMonitor (formerly FocusMonitor) is a native macOS application built wit
 - **AppCategorizer.swift**: App categorization system with color coding
 
 ### Data Flow
-```
+
+```text
 NSWorkspace notifications → ActivityMonitor → SwiftUI Views
                                    ↓
                           DataStorage (JSON files)
 ```
 
 ### Dependencies
+
 - **MarkdownUI**: Markdown content rendering
 - **NetworkImage**: Network image loading for favicons
 - Managed via Swift Package Manager through Xcode
@@ -77,6 +87,7 @@ NSWorkspace notifications → ActivityMonitor → SwiftUI Views
 ## Development Considerations
 
 ### Swift/macOS Compatibility
+
 - **IMPORTANT**: Recent macOS/Swift updates have caused compatibility issues
 - Always test on minimum supported macOS version (13.0+) and latest version
 - See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed compatibility guidelines
@@ -84,22 +95,26 @@ NSWorkspace notifications → ActivityMonitor → SwiftUI Views
 - Keep dependencies updated but test thoroughly
 
 ### Permissions & Security
-- App uses App Sandbox (see `FocusMonitor.entitlements` in ConsciousMonitor/ directory)
+
+- App uses App Sandbox (see `ConsciousMonitor.entitlements` in `ConsciousMonitor/` directory)
 - Requires AppleEvents permission for Chrome integration
 - All data stored locally in JSON format for privacy
 
 ### Build Artifacts Management
+
 - **Never commit**: releases/, *.dmg, built app bundles
 - **Distribution**: Use GitHub Releases for DMG distribution, not git storage
 - **Storage**: Build artifacts are large, platform-specific, and change frequently
 
 ### Code Patterns
+
 - Extensive use of SwiftUI's `@ObservedObject` and `@Published` for reactive updates
 - Singleton pattern for shared services (`DataStorage.shared`, `UserSettings.shared`)
 - Modular UI components with reusable views like `PieChartView`, `InfoTooltip`
 
 ### Swift Concurrency Patterns
 - **NotificationCenter Observer Pattern**: When using `NotificationCenter.addObserver` with closures that need to remove themselves, use weak capture to avoid Sendable warnings:
+
   ```swift
   // ❌ Causes Sendable warning
   var observer: NSObjectProtocol?
@@ -119,6 +134,7 @@ NSWorkspace notifications → ActivityMonitor → SwiftUI Views
   ```
 
 - **@MainActor Usage Precision**: Apply @MainActor surgically to methods needing UI access, not entire classes:
+
   ```swift
   // ❌ Over-broad application causes background queue conflicts
   @MainActor
@@ -134,6 +150,7 @@ NSWorkspace notifications → ActivityMonitor → SwiftUI Views
   ```
 
 - **Sendable Protocol for Models**: Use @unchecked Sendable for models with non-Sendable properties like NSImage:
+
   ```swift
   struct AppActivationEvent: Identifiable, Codable, @unchecked Sendable {
       var appIcon: NSImage? // NSImage is not Sendable
@@ -141,12 +158,14 @@ NSWorkspace notifications → ActivityMonitor → SwiftUI Views
   ```
 
 ### Design Principles
+
 - **Prioritize Clear > Clever**: Always favor simple, predictable solutions over complex "smart" features
 - Use established UI patterns (e.g., Save buttons) rather than auto-save complexity
 - User control and explicit actions are preferred over implicit behaviors
 - Follow macOS Human Interface Guidelines for familiar user experiences
 
 ### User Experience Patterns
+
 - **File Export Feedback**: Always show file paths and provide "Show in Finder" options for exported files
 - **Progress Indication**: Use reactive progress tracking for long-running operations (`@Published` properties)
 - **Scrollable Content**: Wrap complex settings in ScrollView for accessibility
@@ -154,6 +173,7 @@ NSWorkspace notifications → ActivityMonitor → SwiftUI Views
 - **Complete Workflows**: Ensure features have end-to-end user flows, not just technical functionality
 
 ### Service-to-UI Integration Pattern
+
 When connecting services to UI components:
 1. **Service generates data** → Create structured data models
 2. **UI triggers export** → Call service export methods with user-chosen location
@@ -175,6 +195,7 @@ This pattern ensures complete user workflows rather than data generation without
 - **Support complex queries**: Enable efficient data filtering, aggregation, and reporting for analytics features
 
 **Implementation Plan**:
+
 1. **Phase 1**: Create SQLite schema matching existing JSON data structures
    - Preserve backward compatibility with existing user data
    - Implement migration utilities to convert JSON files to SQLite database
@@ -292,7 +313,7 @@ This pattern ensures complete user workflows rather than data generation without
 ### Infrastructure Systems (DO NOT REMOVE)
 **WARNING**: This codebase contains comprehensive infrastructure systems that may appear to be "legacy" or "unused" but are actually essential. A detailed analysis in January 2025 revealed:
 
-#### Core Infrastructure Files:
+#### Core Infrastructure Files
 - **`SessionManager.swift`** - Complete session management system with UUID tracking, actively used by ActivityMonitor
 - **`PerformanceOptimizations.swift`** - Comprehensive performance framework with caching, memoization, monitoring, and optimized views
 - **`AccessibilityEnhancements.swift`** - Massive accessibility framework with VoiceOver, keyboard navigation, reduced motion, high contrast support
@@ -301,7 +322,7 @@ This pattern ensures complete user workflows rather than data generation without
 - **`AppleScriptRunner.swift`** - Chrome integration system with AppleScript execution and error handling
 - **`WindowAccessor.swift`** - Functional window access utilities
 
-#### Architecture Quality:
+#### Architecture Quality
 - **Enterprise-grade systems** with proper separation of concerns
 - **Comprehensive accessibility compliance** (VoiceOver, keyboard nav, etc.)
 - **Performance optimization infrastructure** (caching, memoization, lazy loading)
@@ -309,7 +330,7 @@ This pattern ensures complete user workflows rather than data generation without
 - **Advanced analytics** with smart productivity detection
 - **System integration** via AppleScript and window management
 
-#### Refactoring Guidelines:
+#### Refactoring Guidelines
 - **Never assume files are empty** based on names or initial impressions
 - **Always read complete file contents** before making removal decisions
 - **Search comprehensively for usage patterns** before any deletion
@@ -319,7 +340,8 @@ This pattern ensures complete user workflows rather than data generation without
 This codebase represents exemplary application architecture and should be preserved as-is.
 
 ### File Structure
-```
+
+```text
 ConsciousMonitor/
 ├── Models/           # Data structures (AppActivationEvent, ContextSwitchMetrics, etc.)
 ├── Views/            # SwiftUI views organized by feature
