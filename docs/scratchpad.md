@@ -1,6 +1,6 @@
 # Project Scratchpad
 
-- Last updated: 2025-08-07 18:08:57 -06:00
+- Last updated: 2025-08-07 20:57:00 -06:00
 - Mode: Planner
 
 ## Active Planning Tasks
@@ -8,6 +8,10 @@
 1) Naming alignment and build scripts fix
    - Implementation plan: `docs/implementation-plan/naming-alignment-and-build-scripts.md`
    - Goal: Resolve FocusMonitor vs ConsciousMonitor inconsistencies, correct build/test scripts, and ensure docs and entitlements align.
+
+2) Xcode run: sandbox xattr denial triage
+   - Implementation plan: `docs/implementation-plan/xcode-sandbox-xattr-deny.md`
+   - Goal: Ensure app launches cleanly from Xcode. Determine if the `Sandbox: xattr(...) deny(1) file-read-data` message is benign or symptomatic, and eliminate any misconfiguration causing it.
 
 ## Notes & Insights
 
