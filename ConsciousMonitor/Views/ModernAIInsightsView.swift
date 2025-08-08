@@ -703,7 +703,7 @@ struct AnalysisHistoryCard: View {
                     }
                     .padding(DesignSystem.Spacing.lg)
                 }
-                .background(DesignSystem.Colors.primaryBackground)
+                .background(DesignSystem.Colors.contentBackground)
             }
             .frame(
                 minWidth: 600,
@@ -875,14 +875,17 @@ struct EnhancedAnalysisDetailView: View {
                     }
                 }
                 .padding(DesignSystem.Spacing.lg)
+                .background(DesignSystem.Colors.contentBackground)
             }
-            .background(DesignSystem.Colors.primaryBackground)
+            .frame(
+                minWidth: 700,
+                idealWidth: 800,
+                maxWidth: .infinity,
+                minHeight: 600,
+                idealHeight: 700,
+                maxHeight: .infinity
+            )
         }
-        .frame(
-            minWidth: 700,
-            idealWidth: 800,
-            maxWidth: .infinity,
-            minHeight: 600,
             idealHeight: 700,
             maxHeight: .infinity
         )

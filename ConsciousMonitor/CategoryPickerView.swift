@@ -84,7 +84,7 @@ struct CategoryPickerView: View {
         }
         .padding(DesignSystem.Spacing.xl)
         .frame(width: 400)
-        .background(DesignSystem.Colors.primaryBackground)
+        .background(DesignSystem.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Layout.cardCornerRadius))
     }
 }

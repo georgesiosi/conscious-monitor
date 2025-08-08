@@ -74,7 +74,7 @@ struct SharePreviewView: View {
                 .foregroundColor(DesignSystem.Colors.secondaryText)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(DesignSystem.Colors.primaryBackground)
+        .background(DesignSystem.Colors.contentBackground)
     }
     
     private func errorView(_ message: String) -> some View {
@@ -99,7 +99,7 @@ struct SharePreviewView: View {
             .buttonStyle(SecondaryButtonStyle())
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(DesignSystem.Colors.primaryBackground)
+        .background(DesignSystem.Colors.contentBackground)
     }
     
     private var emptyView: some View {
@@ -117,7 +117,7 @@ struct SharePreviewView: View {
                 .foregroundColor(DesignSystem.Colors.secondaryText)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(DesignSystem.Colors.primaryBackground)
+        .background(DesignSystem.Colors.contentBackground)
     }
     
     private func previewContent(_ data: ShareableStackData) -> some View {
@@ -134,7 +134,8 @@ struct SharePreviewView: View {
             }
             .padding(DesignSystem.Layout.contentPadding)
         }
-        .background(DesignSystem.Colors.primaryBackground)
+        .background(DesignSystem.Colors.contentBackground)
+        
     }
     
     private func previewMetadata(_ data: ShareableStackData) -> some View {
@@ -257,17 +258,23 @@ struct SharePreviewView: View {
             Text(title)
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.secondaryText)
-                .multilineTextAlignment(.center)
+            Text(timeRangeDescription(data))
+                .font(DesignSystem.Typography.body)
+                .fontWeight(.medium)
+                .foregroundColor(DesignSystem.Colors.primaryText)
         }
-        .padding(DesignSystem.Spacing.sm)
-        .frame(maxWidth: .infinity)
-        .background(DesignSystem.Colors.primaryBackground)
-        .cornerRadius(8)
     }
-    
-    // MARK: - Helper Methods
-    
-    private func generatePreviewData() {
+    .padding(DesignSystem.Spacing.md)
+    .background(DesignSystem.Colors.cardBackground)
+    .cornerRadius(12)
+}
+
+private func previewCard(_ data: ShareableStackData) -> some View {
+    VStack(spacing: DesignSystem.Spacing.md) {
+        Text("Preview")
+            .font(DesignSystem.Typography.headline)
+            .fontWeight(.semibold)
+            .foregroundColor(DesignSystem.Colors.primaryText)
         isLoading = true
         errorMessage = nil
         

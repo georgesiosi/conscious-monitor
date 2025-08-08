@@ -234,7 +234,7 @@ extension View {
         self.overlay {
             if isLoading {
                 LoadingStateView(message)
-                    .background(DesignSystem.Colors.primaryBackground.opacity(0.8))
+                    .background(DesignSystem.Colors.contentBackground.opacity(0.8))
                     .animation(.easeInOut(duration: 0.2), value: isLoading)
             }
         }

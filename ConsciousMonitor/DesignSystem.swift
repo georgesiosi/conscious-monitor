@@ -175,7 +175,7 @@ struct LoadingView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(DesignSystem.Colors.primaryBackground.opacity(0.8))
+        .background(DesignSystem.Colors.contentBackground.opacity(0.8))
     }
 }
 
