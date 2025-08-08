@@ -57,7 +57,44 @@ class DataStorage {
         self.contextSwitchesStorageURL = appDir.appendingPathComponent("context_switches.json")
         self.eventsBackupURL = appDir.appendingPathComponent("activity_events.backup.json")
         self.contextSwitchesBackupURL = appDir.appendingPathComponent("context_switches.backup.json")
+
+        // One-time best-effort migration from legacy bundle IDs
+        migrateLegacyFilesIfNeeded(appSupportDir: appSupportDir, newAppDir: appDir)
         print("Data storage URLs: \n- Events: \(eventsStorageURL.path)\n- Context Switches: \(contextSwitchesStorageURL.path)")
+    }
+
+    // MARK: - Legacy Migration (FocusMonitor -> ConsciousMonitor)
+    private func migrateLegacyFilesIfNeeded(appSupportDir: URL, newAppDir: URL) {
+        let legacyBundleIDs = [
+            "com.FocusMonitor",
+            "com.cstack.FocusMonitor",
+            "com.example.FocusMonitor"
+        ]
+
+        for legacy in legacyBundleIDs {
+            let oldDir = appSupportDir.appendingPathComponent(legacy, isDirectory: true)
+            let oldEvents = oldDir.appendingPathComponent("activity_events.json")
+            let oldContext = oldDir.appendingPathComponent("context_switches.json")
+
+            // Copy if destination missing; do not overwrite
+            if FileManager.default.fileExists(atPath: oldEvents.path) && !FileManager.default.fileExists(atPath: eventsStorageURL.path) {
+                do {
+                    try FileManager.default.copyItem(at: oldEvents, to: eventsStorageURL)
+                    print("DataStorage: Migrated legacy activity_events.json from \(legacy)")
+                } catch {
+                    print("DataStorage: Failed to migrate legacy activity_events.json: \(error.localizedDescription)")
+                }
+            }
+
+            if FileManager.default.fileExists(atPath: oldContext.path) && !FileManager.default.fileExists(atPath: contextSwitchesStorageURL.path) {
+                do {
+                    try FileManager.default.copyItem(at: oldContext, to: contextSwitchesStorageURL)
+                    print("DataStorage: Migrated legacy context_switches.json from \(legacy)")
+                } catch {
+                    print("DataStorage: Failed to migrate legacy context_switches.json: \(error.localizedDescription)")
+                }
+            }
+        }
     }
 
     // MARK: - Public Methods for App Activation Events
