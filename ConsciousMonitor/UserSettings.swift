@@ -27,6 +27,9 @@ class UserSettings: ObservableObject {
         static let floatingBarAutoHide = "floatingBarAutoHide"
     }
 
+    // Migration sentinel to ensure we only migrate once
+    private static let legacyMigrationDoneKey = "didMigrateFromLegacyUserDefaults"
+
     @Published var hourlyRate: Double {
         didSet {
             UserDefaults.standard.set(hourlyRate, forKey: Keys.hourlyRate)
@@ -211,6 +214,9 @@ class UserSettings: ObservableObject {
         
         // Load all settings from UserDefaults (this will trigger didSet if values exist)
         loadSettings()
+
+        // Attempt one-time migration from legacy UserDefaults domains
+        performLegacyUserDefaultsMigrationIfNeeded()
         
         // Load boolean settings from UserDefaults
         self.showFloatingFocusPanel = UserDefaults.standard.bool(forKey: Keys.showFloatingFocusPanel)
@@ -246,5 +252,48 @@ class UserSettings: ObservableObject {
 extension UserDefaults {
     func objectExists(forKey key: String) -> Bool {
         return object(forKey: key) != nil
+    }
+}
+
+// MARK: - Legacy Migration
+extension UserSettings {
+    /// Migrate keys from old bundle identifiers (e.g., FocusMonitor) into the current domain once.
+    private func performLegacyUserDefaultsMigrationIfNeeded() {
+        let defaults = UserDefaults.standard
+        if defaults.bool(forKey: Self.legacyMigrationDoneKey) {
+            return
+        }
+
+        // Only migrate if current values are empty, to avoid overwriting newer data
+        var migratedSomething = false
+        let legacyDomains = [
+            "com.FocusMonitor",
+            "com.cstack.FocusMonitor",
+            "com.example.FocusMonitor"
+        ]
+
+        for domain in legacyDomains {
+            guard let legacyDefaults = UserDefaults(suiteName: domain) else { continue }
+
+            if self.openAIAPIKey.isEmpty, let oldKey = legacyDefaults.string(forKey: Keys.openAIAPIKey), !oldKey.isEmpty {
+                self.openAIAPIKey = oldKey
+                migratedSomething = true
+                print("UserSettings: Migrated OpenAI API key from legacy domain \(domain)")
+            }
+
+            if self.csdAgentKey.isEmpty, let oldCSD = legacyDefaults.string(forKey: Keys.csdAgentKey), !oldCSD.isEmpty {
+                self.csdAgentKey = oldCSD
+                migratedSomething = true
+                print("UserSettings: Migrated CSD Agent key from legacy domain \(domain)")
+            }
+        }
+
+        if migratedSomething {
+            defaults.set(true, forKey: Self.legacyMigrationDoneKey)
+            print("UserSettings: Legacy UserDefaults migration completed")
+        } else {
+            // Still set the flag to avoid repeated attempts if nothing to migrate
+            defaults.set(true, forKey: Self.legacyMigrationDoneKey)
+        }
     }
 }

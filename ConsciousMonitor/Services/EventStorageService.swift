@@ -786,51 +786,73 @@ extension EventStorageService {
     /// Migrate events from the old DataStorage.swift format
     /// This method reads from the single JSON file and converts to individual files
     func migrateFromDataStorage() {
-        let oldEventsURL = appDir.appendingPathComponent("activity_events.json")
-        
-        guard FileManager.default.fileExists(atPath: oldEventsURL.path) else {
-            print("EventStorage: No old events file found for migration")
+        // Use a sentinel to avoid repeating migration work
+        let migrationStamp = appDir.appendingPathComponent("migrated_from_legacy_events.stamp")
+        if FileManager.default.fileExists(atPath: migrationStamp.path) {
             return
         }
-        
+
         fileQueue.async { [weak self] in
             guard let self = self else { return }
-            
-            do {
-                let data = try Data(contentsOf: oldEventsURL)
-                let decoder = JSONDecoder()
-                decoder.dateDecodingStrategy = .iso8601
-                let oldEvents = try decoder.decode([AppActivationEvent].self, from: data)
-                
-                print("EventStorage: Found \(oldEvents.count) events to migrate")
-                
-                // Save each event as individual file
-                var migratedCount = 0
-                for event in oldEvents {
-                    do {
-                        try self.saveIndividualEvent(event)
-                        migratedCount += 1
-                    } catch {
-                        print("EventStorage: Failed to migrate event \(event.id): \(error.localizedDescription)")
-                    }
+
+            // Compose candidate locations for legacy monolithic events file
+            var candidateURLs: [URL] = []
+            candidateURLs.append(self.appDir.appendingPathComponent("activity_events.json"))
+
+            if let appSupportDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+                let legacyBundleIDs = [
+                    "com.FocusMonitor",
+                    "com.cstack.FocusMonitor",
+                    "com.example.FocusMonitor"
+                ]
+                for legacy in legacyBundleIDs {
+                    candidateURLs.append(appSupportDir.appendingPathComponent(legacy, isDirectory: true)
+                        .appendingPathComponent("activity_events.json"))
                 }
-                
-                print("EventStorage: Successfully migrated \(migratedCount) out of \(oldEvents.count) events")
-                
-                // Create backup of old file before removing
-                let backupURL = self.appDir.appendingPathComponent("activity_events_backup_\(Date().timeIntervalSince1970).json")
-                try FileManager.default.copyItem(at: oldEventsURL, to: backupURL)
-                
-                // Remove old file after successful migration
-                try FileManager.default.removeItem(at: oldEventsURL)
-                
-                print("EventStorage: Migration completed. Old file backed up and removed.")
-                
+            }
+
+            var totalMigrated = 0
+            for oldEventsURL in candidateURLs {
+                guard FileManager.default.fileExists(atPath: oldEventsURL.path) else { continue }
+
+                do {
+                    let data = try Data(contentsOf: oldEventsURL)
+                    let decoder = JSONDecoder()
+                    decoder.dateDecodingStrategy = .iso8601
+                    let oldEvents = try decoder.decode([AppActivationEvent].self, from: data)
+
+                    print("EventStorage: Found \(oldEvents.count) events to migrate from \(oldEventsURL.deletingLastPathComponent().lastPathComponent)")
+
+                    var migratedCount = 0
+                    for event in oldEvents {
+                        do {
+                            try self.saveIndividualEvent(event)
+                            migratedCount += 1
+                            totalMigrated += 1
+                        } catch {
+                            print("EventStorage: Failed to migrate event \(event.id): \(error.localizedDescription)")
+                        }
+                    }
+
+                    // Backup the old file and remove it
+                    let backupURL = self.appDir.appendingPathComponent("activity_events_backup_\(Date().timeIntervalSince1970).json")
+                    do { try FileManager.default.copyItem(at: oldEventsURL, to: backupURL) } catch {}
+                    do { try FileManager.default.removeItem(at: oldEventsURL) } catch {}
+
+                    print("EventStorage: Migrated \(migratedCount) events from \(oldEventsURL.lastPathComponent)")
+                } catch {
+                    print("EventStorage: Migration read failed for \(oldEventsURL.path): \(error.localizedDescription)")
+                }
+            }
+
+            // Write sentinel
+            FileManager.default.createFile(atPath: migrationStamp.path, contents: Data(), attributes: nil)
+
+            if totalMigrated > 0 {
                 // Reload events to update memory
                 self.loadEvents()
-                
-            } catch {
-                print("EventStorage: Migration failed: \(error.localizedDescription)")
+            } else {
+                print("EventStorage: No legacy events found to migrate")
             }
         }
     }

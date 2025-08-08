@@ -3,7 +3,7 @@
 - Task Name: Xcode sandbox xattr denial triage
 - Branch Name: chore/xcode-sandbox-xattr-deny
 - Owner: Executor
-- Last Updated: 2025-08-07 20:57:00 -06:00
+- Last Updated: 2025-08-07 21:07:33 -06:00
 
 ## Background and Motivation
 When running the app from Xcode, a console message appears:
@@ -74,9 +74,9 @@ This may be benign (a helper trying to inspect extended attributes) or indicativ
 - Unsigned build (`npm run build`) and tests (`npm test`) continue to pass.
 
 ## Project Status Board
-- [ ] Branch created: `chore/xcode-sandbox-xattr-deny`
+- [x] Branch created: `chore/xcode-sandbox-xattr-deny`
 - [ ] Logs captured and analyzed
-- [ ] Build phase audited and guarded
+- [x] Build phase audited and guarded
 - [ ] Defensive checks added (if required)
 - [ ] Scheme/build settings verified
 - [ ] Entitlements reviewed
@@ -84,8 +84,9 @@ This may be benign (a helper trying to inspect extended attributes) or indicativ
 - [ ] Docs updated
 
 ## Current Status / Progress Tracking
-- Planner prepared detailed steps and acceptance criteria.
-- Awaiting Executor to create branch and begin Step 2.
+- Created branch `chore/xcode-sandbox-xattr-deny` and committed tightened Run Script conditions.
+- Set script to run only when installing and only when an actual signing identity is present; prevents Debug xattr invocation.
+- Please retry Build & Run in Xcode (Debug). If any denial persists, capture 10–15 lines around it.
 
 ## Executor's Feedback or Assistance Requests
 - If the app fails to launch, paste the surrounding Run console output for targeted diagnosis.

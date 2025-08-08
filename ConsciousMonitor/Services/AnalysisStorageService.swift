@@ -41,6 +41,53 @@ class AnalysisStorageService: ObservableObject, @unchecked Sendable {
             case .recoveryFailed(let message):
                 return "Recovery failed: \(message)"
             }
+
+    // MARK: - Legacy Migration (FocusMonitor -> ConsciousMonitor)
+    private func migrateLegacyAnalysesIfNeeded(appSupportDir: URL) {
+        let legacyBundleIDs = [
+            "com.FocusMonitor",
+            "com.cstack.FocusMonitor",
+            "com.example.FocusMonitor"
+        ]
+
+        let fm = FileManager.default
+
+        for legacy in legacyBundleIDs {
+            let legacyBase = appSupportDir.appendingPathComponent(legacy, isDirectory: true)
+            let legacyAnalyses = legacyBase.appendingPathComponent("analyses", isDirectory: true)
+            let legacyBackups = legacyBase.appendingPathComponent("analyses_backup", isDirectory: true)
+
+            // Copy analyses files
+            if fm.fileExists(atPath: legacyAnalyses.path), let files = try? fm.contentsOfDirectory(at: legacyAnalyses, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) {
+                for src in files where src.pathExtension == "json" {
+                    let dst = self.analysesDirectory.appendingPathComponent(src.lastPathComponent)
+                    if !fm.fileExists(atPath: dst.path) {
+                        do {
+                            try fm.copyItem(at: src, to: dst)
+                            print("AnalysisStorage: Migrated analysis file \(src.lastPathComponent) from \(legacy)")
+                        } catch {
+                            print("AnalysisStorage: Failed to migrate \(src.lastPathComponent): \(error.localizedDescription)")
+                        }
+                    }
+                }
+            }
+
+            // Copy backup files
+            if fm.fileExists(atPath: legacyBackups.path), let files = try? fm.contentsOfDirectory(at: legacyBackups, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) {
+                for src in files where src.pathExtension == "json" {
+                    let dst = self.backupDirectory.appendingPathComponent(src.lastPathComponent)
+                    if !fm.fileExists(atPath: dst.path) {
+                        do {
+                            try fm.copyItem(at: src, to: dst)
+                            print("AnalysisStorage: Migrated backup file \(src.lastPathComponent) from \(legacy)")
+                        } catch {
+                            print("AnalysisStorage: Failed to migrate backup \(src.lastPathComponent): \(error.localizedDescription)")
+                        }
+                    }
+                }
+            }
+        }
+    }
         }
     }
     
@@ -91,7 +138,9 @@ class AnalysisStorageService: ObservableObject, @unchecked Sendable {
             }
         }
         
-        
+        // One-time migration from legacy bundle IDs (FocusMonitor variants)
+        migrateLegacyAnalysesIfNeeded(appSupportDir: appSupportDir)
+
         // Load existing analyses on initialization
         loadAnalyses()
         
