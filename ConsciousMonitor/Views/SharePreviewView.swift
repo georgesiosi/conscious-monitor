@@ -263,37 +263,9 @@ struct SharePreviewView: View {
                 .fontWeight(.medium)
                 .foregroundColor(DesignSystem.Colors.primaryText)
         }
-    }
-    .padding(DesignSystem.Spacing.md)
-    .background(DesignSystem.Colors.cardBackground)
-    .cornerRadius(12)
-}
-
-private func previewCard(_ data: ShareableStackData) -> some View {
-    VStack(spacing: DesignSystem.Spacing.md) {
-        Text("Preview")
-            .font(DesignSystem.Typography.headline)
-            .fontWeight(.semibold)
-            .foregroundColor(DesignSystem.Colors.primaryText)
-        isLoading = true
-        errorMessage = nil
-        
-        Task {
-            let service = ShareableStackService()
-            let data = service.generateShareableData(
-                from: events,
-                contextSwitches: contextSwitches,
-                timeRange: timeRange,
-                customStartDate: customStartDate,
-                customEndDate: customEndDate,
-                privacyLevel: privacyLevel
-            )
-            
-            await MainActor.run {
-                self.shareableData = data
-                self.isLoading = false
-            }
-        }
+        .padding(DesignSystem.Spacing.md)
+        .background(DesignSystem.Colors.cardBackground)
+        .cornerRadius(12)
     }
     
     @MainActor
