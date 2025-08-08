@@ -52,7 +52,7 @@ struct FloatingFocusBarView: View {
         .simultaneousGesture(
             TapGesture(count: 2)
                 .onEnded { _ in
-                    // Double click activates main FocusMonitor window
+                    // Double click activates main ConsciousMonitor window
                     DispatchQueue.main.async {
                         windowManager.activateMainWindow()
                     }

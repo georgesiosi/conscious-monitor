@@ -29,7 +29,7 @@ class EventStorageService: ObservableObject {
     private let loadLock = NSLock()
     
     // Serial queue for thread-safe file operations
-    private let fileQueue = DispatchQueue(label: "com.focusmonitor.eventStorage", qos: .utility)
+    private let fileQueue = DispatchQueue(label: "com.consciousmonitor.eventStorage", qos: .utility)
     
     // MARK: - Storage Error Types
     
@@ -65,7 +65,7 @@ class EventStorageService: ObservableObject {
         }
         
         // Use the same directory as DataStorage for consistency
-        let bundleID = Bundle.main.bundleIdentifier ?? "com.example.FocusMonitor"
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.example.ConsciousMonitor"
         let appDir = appSupportDir.appendingPathComponent(bundleID, isDirectory: true)
         
         // Create the app-specific directory if it doesn't exist

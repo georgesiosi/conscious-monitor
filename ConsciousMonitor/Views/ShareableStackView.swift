@@ -52,7 +52,7 @@ struct ShareableStackView: View {
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.blue)
                     
-                    Text("FocusMonitor")
+                    Text("ConsciousMonitor")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.primary)
                 }

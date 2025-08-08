@@ -23,7 +23,7 @@ class ReportGenerationService: ObservableObject {
     private let eventStorage = EventStorageService.shared
     
     // MARK: - Configuration
-    private let processingQueue = DispatchQueue(label: "com.focusmonitor.reportGeneration", qos: .userInitiated)
+    private let processingQueue = DispatchQueue(label: "com.consciousmonitor.reportGeneration", qos: .userInitiated)
     private let maxReportSize: Int64 = 50 * 1024 * 1024 // 50MB limit
     
     private init() {}

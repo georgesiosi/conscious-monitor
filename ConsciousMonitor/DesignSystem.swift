@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Design System Foundation
 
-/// Native macOS design system for FocusMonitor
+/// Native macOS design system for ConsciousMonitor
 /// Provides consistent theming, spacing, and components following macOS HIG
 struct DesignSystem {
     

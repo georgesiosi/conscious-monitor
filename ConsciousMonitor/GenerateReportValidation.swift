@@ -201,7 +201,7 @@ struct GenerateReportValidation {
     // MARK: - Report Generation
     
     static func printValidationReport(_ results: [ValidationResult]) {
-        print("\n=== FocusMonitor Generate Report Validation Report ===")
+        print("\n=== ConsciousMonitor Generate Report Validation Report ===")
         print("Generated at: \(Date().formatted(date: .complete, time: .shortened))\n")
         
         let totalTests = results.count

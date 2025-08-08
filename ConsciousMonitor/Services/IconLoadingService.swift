@@ -5,13 +5,13 @@ class IconLoadingService {
     static let shared = IconLoadingService()
     
     private var iconCache: [String: NSImage] = [:]
-    private let cacheQueue = DispatchQueue(label: "com.focusmonitor.iconCache", qos: .utility)
+    private let cacheQueue = DispatchQueue(label: "com.consciousmonitor.iconCache", qos: .utility)
     private let diskCacheURL: URL
     
     private init() {
         // Create icon cache directory - use same bundle ID pattern as other services
         let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let bundleID = Bundle.main.bundleIdentifier ?? "com.example.FocusMonitor"
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.example.ConsciousMonitor"
         diskCacheURL = appSupportURL.appendingPathComponent(bundleID).appendingPathComponent("IconCache")
         
         do {

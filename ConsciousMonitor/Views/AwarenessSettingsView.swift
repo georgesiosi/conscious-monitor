@@ -118,7 +118,7 @@ struct AwarenessSettingsView: View {
                         // Test notification button
                         HStack {
                             Button("Test Notification") {
-                                notificationService.sendFocusReminder(message: "This is a test of your FocusMonitor awareness notifications.")
+                                notificationService.sendFocusReminder(message: "This is a test of your ConsciousMonitor awareness notifications.")
                             }
                             .disabled(!notificationService.isEnabled)
                             
@@ -144,7 +144,7 @@ struct AwarenessSettingsView: View {
                 userSettings.enableAwarenessNotifications = false
             }
         } message: {
-            Text("FocusMonitor needs notification permission to send focus awareness alerts. Please enable notifications in System Preferences.")
+            Text("ConsciousMonitor needs notification permission to send focus awareness alerts. Please enable notifications in System Preferences.")
         }
     }
     

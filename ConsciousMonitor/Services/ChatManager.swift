@@ -11,16 +11,37 @@ class ChatManager: ObservableObject {
     private let openAIService = OpenAIService()
     private let userSettings = UserSettings.shared
     
-    // File manager for saving sessions
+    // File paths for saving sessions (new canonical + legacy fallback)
     private var documentsDirectory: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            .appendingPathComponent("ConsciousMonitor")
+            .appendingPathComponent("ChatSessions")
+    }
+
+    private var legacyDocumentsDirectory: URL {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
             .appendingPathComponent("FocusMonitor")
             .appendingPathComponent("ChatSessions")
     }
     
     init() {
-        // Create documents directory if it doesn't exist
+        // Ensure new documents directory exists
         try? FileManager.default.createDirectory(at: documentsDirectory, withIntermediateDirectories: true)
+
+        // Minimal migration: if legacy directory exists with files and new is empty, copy files forward
+        let fm = FileManager.default
+        if fm.fileExists(atPath: legacyDocumentsDirectory.path) {
+            let newIsEmpty = (try? fm.contentsOfDirectory(atPath: documentsDirectory.path).isEmpty) ?? true
+            if newIsEmpty {
+                if let items = try? fm.contentsOfDirectory(atPath: legacyDocumentsDirectory.path) {
+                    for item in items where item.hasSuffix(".json") {
+                        let src = legacyDocumentsDirectory.appendingPathComponent(item)
+                        let dst = documentsDirectory.appendingPathComponent(item)
+                        _ = try? fm.copyItem(at: src, to: dst)
+                    }
+                }
+            }
+        }
         
         // Initialize chat mode from user settings
         self.chatMode = userSettings.defaultChatMode
@@ -50,12 +71,19 @@ class ChatManager: ObservableObject {
     
     /// Load existing session for analysis ID
     func loadSessionIfExists(for analysisId: String) -> Bool {
-        let sessionURL = documentsDirectory.appendingPathComponent("\(analysisId).json")
-        
-        guard let data = try? Data(contentsOf: sessionURL),
-              let session = try? JSONDecoder().decode(ChatSession.self, from: data) else {
-            return false
+        let primaryURL = documentsDirectory.appendingPathComponent("\(analysisId).json")
+        let legacyURL = legacyDocumentsDirectory.appendingPathComponent("\(analysisId).json")
+
+        var loadedSession: ChatSession?
+        if let data = try? Data(contentsOf: primaryURL),
+           let session = try? JSONDecoder().decode(ChatSession.self, from: data) {
+            loadedSession = session
+        } else if let data = try? Data(contentsOf: legacyURL),
+                  let session = try? JSONDecoder().decode(ChatSession.self, from: data) {
+            loadedSession = session
         }
+
+        guard let session = loadedSession else { return false }
         
         self.currentSession = session
         return true
