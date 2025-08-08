@@ -24,19 +24,21 @@ struct FloatingFocusView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
             Text("Focus Activity (Last Hour)")
-                .font(.headline)
-                .foregroundColor(.primary.opacity(0.8))
+                .font(DesignSystem.Typography.headline)
+                .foregroundColor(DesignSystem.Colors.primaryText)
 
             if topAppsLastHour.isEmpty {
                 Text("No app activity recorded in the last hour.")
-                    .foregroundColor(.secondary)
+                    .font(DesignSystem.Typography.body)
+                    .foregroundColor(DesignSystem.Colors.secondaryText)
             } else {
                 ForEach(topAppsLastHour, id: \.self) { appName in
                     HStack {
                         Text(appName)
-                            .foregroundColor(.primary.opacity(0.9))
+                            .font(DesignSystem.Typography.body)
+                            .foregroundColor(DesignSystem.Colors.primaryText)
                         Spacer()
                         // Placeholder for usage time or frequency count later
                         // Text("X min") 
@@ -46,14 +48,10 @@ struct FloatingFocusView: View {
                 }
             }
         }
-        .padding()
+        .padding(DesignSystem.Spacing.lg)
         .frame(minWidth: 200, idealWidth: 250, maxWidth: 300)
-        .background(
-            Color(nsColor: .windowBackgroundColor) // A standard light/dark adaptive gray
-                .opacity(0.85) // Make it slightly transparent
-                .blur(radius: 10) // Add a blur effect for a modern look
-        )
-        .cornerRadius(12) // Rounded corners for the view content area
+        .background(DesignSystem.Colors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: DesignSystem.Layout.cardCornerRadius))
     }
 }
 

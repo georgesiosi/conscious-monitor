@@ -94,19 +94,19 @@ struct EventRow: View {
     var body: some View {
         HStack {
             if event.bundleIdentifier == "com.google.Chrome" {
-                let actualChromeIcon = event.appIcon ?? NSImage(named: "chrome") ?? NSImage(systemSymbolName: "globe", accessibilityDescription: "Chrome fallback") ?? NSImage(size: NSSize(width: 20, height: 20))
-                let favicon = event.siteFavicon ?? NSImage(named: "favicon_placeholder") ?? NSImage(systemSymbolName: "square.on.square", accessibilityDescription: "Favicon Placeholder") ?? NSImage(size: NSSize(width: 20, height: 20))
-                DualAppIconView(backgroundImage: actualChromeIcon, overlayImage: favicon, size: 20)
+                let actualChromeIcon = event.appIcon ?? NSImage(named: "chrome") ?? NSImage(systemSymbolName: "globe", accessibilityDescription: "Chrome fallback") ?? NSImage(size: NSSize(width: DesignSystem.Layout.iconSize, height: DesignSystem.Layout.iconSize))
+                let favicon = event.siteFavicon ?? NSImage(named: "favicon_placeholder") ?? NSImage(systemSymbolName: "square.on.square", accessibilityDescription: "Favicon Placeholder") ?? NSImage(size: NSSize(width: DesignSystem.Layout.iconSize, height: DesignSystem.Layout.iconSize))
+                DualAppIconView(backgroundImage: actualChromeIcon, overlayImage: favicon, size: DesignSystem.Layout.iconSize)
             } else if let nsIcon = event.appIcon {
                 Image(nsImage: nsIcon)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 20, height: 20)
+                    .frame(width: DesignSystem.Layout.iconSize, height: DesignSystem.Layout.iconSize)
             } else {
                 Image(systemName: "app.dashed")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 20, height: 20)
+                    .frame(width: DesignSystem.Layout.iconSize, height: DesignSystem.Layout.iconSize)
                     .foregroundColor(DesignSystem.Colors.tertiaryText)
             }
             VStack(alignment: .leading) {
@@ -122,6 +122,10 @@ struct EventRow: View {
             Text(timeFormatter.string(from: event.timestamp))
                 .font(DesignSystem.Typography.monospacedDigit)
                 .foregroundColor(DesignSystem.Colors.tertiaryText)
+        }
+        .background(isHovered ? DesignSystem.Colors.hoverBackground : Color.clear)
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.15)) { isHovered = hovering }
         }
     }
 }

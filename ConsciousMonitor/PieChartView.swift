@@ -28,7 +28,7 @@ struct PieChartView: View {
                             if item.value > 0 {
                                 Text("\(Int(item.value))")
                                     .font(DesignSystem.Typography.caption2)
-                                    .foregroundColor(DesignSystem.Colors.primaryBackground)
+                                    .foregroundColor(DesignSystem.Colors.primaryText)
                                     .fontWeight(.medium)
                             }
                         }

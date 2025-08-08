@@ -53,7 +53,7 @@ struct AnalyticsTabView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .background(DesignSystem.Colors.primaryBackground)
+        .background(DesignSystem.Colors.contentBackground)
         .animation(.easeInOut(duration: 0.2), value: selectedSegment)
     }
 }

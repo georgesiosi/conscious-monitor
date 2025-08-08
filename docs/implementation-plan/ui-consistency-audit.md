@@ -69,12 +69,12 @@ A design system (`ConsciousMonitor/DesignSystem.swift`) exists and is widely use
 - Accessibility approach for stat cards is documented and applied.
 
 ## Project Status Board
-- [ ] Branch created
-- [ ] FloatingFocusView normalized
-- [ ] PieChartView annotation contrast fixed
-- [ ] EventRow icon sizing standardized
-- [ ] EventRow hover background applied
-- [ ] Background token unified across top-level views
+- [x] Branch created
+- [x] FloatingFocusView normalized
+- [x] PieChartView annotation contrast fixed
+- [x] EventRow icon sizing standardized
+- [x] EventRow hover background applied
+- [ ] Background token unified across top-level views (partial: AnalyticsTabView updated; review others in next slice)
 - [ ] Token semantics decision documented and enforced
 - [ ] Modern* naming drift resolved
 - [ ] Accessibility approach for stat cards decided and applied
