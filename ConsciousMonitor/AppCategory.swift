@@ -28,6 +28,9 @@ struct AppCategory: Identifiable, Codable, Hashable {
     static let shopping = AppCategory(name: "Shopping")
     static let travel = AppCategory(name: "Travel")
     static let knowledgeManagement = AppCategory(name: "Knowledge Management")
+    static let infoReading = AppCategory(name: "Info & Reading")
+    static let video = AppCategory(name: "Video")
+    static let system = AppCategory(name: "System")
     static let other = AppCategory(name: "Other") // The crucial one for initiating custom categories
 
     // For Picker usage - this will be expanded by AppCategorizer later
@@ -49,6 +52,9 @@ struct AppCategory: Identifiable, Codable, Hashable {
             .shopping,
             .travel,
             .knowledgeManagement,
+            .infoReading,
+            .video,
+            .system,
             .other
         ]
     }
@@ -82,7 +88,10 @@ struct AppCategory: Identifiable, Codable, Hashable {
             AppCategory.health.name: Color(red: 0.9, green: 0.5, blue: 0.5), // Light Red/Pink
             AppCategory.shopping.name: Color(red: 0.8, green: 0.2, blue: 0.2),  // Deep Red
             AppCategory.socialMedia.name: .cyan,
-            AppCategory.knowledgeManagement.name: Color(red: 0.5, green: 0.2, blue: 0.8) // Deep Purple
+            AppCategory.knowledgeManagement.name: Color(red: 0.5, green: 0.2, blue: 0.8), // Deep Purple
+            AppCategory.infoReading.name: Color(red: 0.2, green: 0.6, blue: 0.9), // Light Blue
+            AppCategory.video.name: Color(red: 0.8, green: 0.1, blue: 0.5), // Magenta/Purple
+            AppCategory.system.name: Color(red: 0.4, green: 0.4, blue: 0.4) // Medium Gray
         ]
 
         if let predefinedColor = defaultColors[name] {
@@ -116,6 +125,9 @@ struct AppCategory: Identifiable, Codable, Hashable {
             AppCategory.shopping.name: "E-commerce, price comparison, and online shopping applications",
             AppCategory.travel.name: "Trip planning, booking, navigation, and travel-related applications",
             AppCategory.knowledgeManagement.name: "Note-taking, knowledge bases, documentation, and information organization tools",
+            AppCategory.infoReading.name: "Web browsers, RSS readers, article readers, and information consumption apps",
+            AppCategory.video.name: "Video editing, viewing, streaming, and multimedia creation applications",
+            AppCategory.system.name: "System applications, utilities, and core macOS functionality tools",
             AppCategory.other.name: "Apps that don't fit into the standard categories - perfect for specialized tools"
         ]
         
