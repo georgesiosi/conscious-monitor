@@ -546,15 +546,21 @@ struct ModernEventRow: View {
                     }
                     
                     HStack {
-                        // Category badge (no longer clickable - context menu handles categorization)
-                        Text(event.displaySubtitle)
-                            .font(DesignSystem.Typography.caption2)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, DesignSystem.Spacing.sm)
-                            .padding(.vertical, 2)
-                            .background(event.category.color)
-                            .cornerRadius(4)
+                        // Category badge (clickable for quick categorization)
+                        Button(action: {
+                            onTap() // Trigger categorization sheet
+                        }) {
+                            Text(event.displaySubtitle)
+                                .font(DesignSystem.Typography.caption2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, DesignSystem.Spacing.sm)
+                                .padding(.vertical, 2)
+                                .background(event.category.color)
+                                .cornerRadius(4)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Click to change category")
                         
                         Spacer()
                     }
