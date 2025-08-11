@@ -548,19 +548,53 @@ struct ModernEventRow: View {
                     HStack {
                         // Category badge (clickable for quick categorization)
                         Button(action: {
-                            onTap() // Trigger categorization sheet
+                            // For Chrome tabs, prioritize domain categorization
+                            if event.bundleIdentifier == "com.google.Chrome" && onTabTitleTap != nil {
+                                onTabTitleTap!()
+                            } else {
+                                onTap()
+                            }
                         }) {
-                            Text(event.displaySubtitle)
-                                .font(DesignSystem.Typography.caption2)
-                                .fontWeight(.medium)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, DesignSystem.Spacing.sm)
-                                .padding(.vertical, 2)
-                                .background(event.category.color)
-                                .cornerRadius(4)
+                            HStack(spacing: DesignSystem.Spacing.xs) {
+                                // Show domain-specific category for Chrome tabs
+                                if event.bundleIdentifier == "com.google.Chrome" {
+                                    let domainCategory = CategoryManager.shared.getCategoryForChromeTab(domain: event.siteDomain)
+                                    Text(domainCategory.name)
+                                        .font(DesignSystem.Typography.caption2)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.white)
+                                    
+                                    // Show domain indicator if available
+                                    if let domain = event.siteDomain, !domain.isEmpty {
+                                        Text("•")
+                                            .font(DesignSystem.Typography.caption2)
+                                            .foregroundColor(.white.opacity(0.7))
+                                        Text(domain)
+                                            .font(DesignSystem.Typography.caption2)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.white.opacity(0.9))
+                                            .lineLimit(1)
+                                            .truncationMode(.tail)
+                                    }
+                                } else {
+                                    // For non-Chrome apps, show regular category
+                                    Text(event.category.name)
+                                        .font(DesignSystem.Typography.caption2)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .padding(.horizontal, DesignSystem.Spacing.sm)
+                            .padding(.vertical, 2)
+                            .background(
+                                event.bundleIdentifier == "com.google.Chrome" 
+                                    ? CategoryManager.shared.getCategoryForChromeTab(domain: event.siteDomain).color
+                                    : event.category.color
+                            )
+                            .cornerRadius(4)
                         }
                         .buttonStyle(.plain)
-                        .help("Click to change category")
+                        .help(event.bundleIdentifier == "com.google.Chrome" ? "Click to change domain category" : "Click to change category")
                         
                         Spacer()
                     }
@@ -580,23 +614,28 @@ struct ModernEventRow: View {
         }
         .contextMenu {
             if event.bundleIdentifier == "com.google.Chrome" {
-                // Chrome-specific context menu with dual categorization options
-                Button("Categorize Chrome App") {
-                    onTap() // Existing app categorization callback
-                }
-                
+                // Chrome-specific context menu with domain-first approach
                 if let domain = event.siteDomain, !domain.isEmpty {
                     Button("Categorize \(domain)") {
                         onTabTitleTap?() // Domain categorization callback
                     }
+                    
+                    Divider()
+                    
+                    Button("Categorize Chrome App") {
+                        onTap() // Chrome app categorization callback
+                    }
+                } else {
+                    // Fallback if no domain available
+                    Button("Categorize Chrome App") {
+                        onTap()
+                    }
                 }
-                
-                Divider()
-            }
-            
-            // Standard categorization option for all apps
-            Button("Categorize App") {
-                onTap()
+            } else {
+                // Standard categorization option for all non-Chrome apps
+                Button("Categorize App") {
+                    onTap()
+                }
             }
         }
     }

@@ -172,28 +172,6 @@
 		};
 /* End PBXNativeTarget section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		F6AABBCD2DCA880000FDFE87 /* Strip Extended Attributes */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Strip Extended Attributes";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/xattr_strip.stamp",
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-			shellPath = /bin/sh;
-			shellScript = "set -e\n# Only run when codesigning is truly occurring (e.g., archive/install)\nif [ \"${CODE_SIGNING_ALLOWED}\" = \"YES\" ] \\\n+   && [ \"${CODE_SIGNING_REQUIRED}\" = \"YES\" ] \\\n+   && [ -n \"${EXPANDED_CODE_SIGN_IDENTITY}\" ] \\\n+   && [ \"${EXPANDED_CODE_SIGN_IDENTITY}\" != \"-\" ]; then\n  TARGET_PATH=\"${CODESIGNING_FOLDER_PATH:-${TARGET_BUILD_DIR}/${WRAPPER_NAME}}\"\n  if [ -d \"$TARGET_PATH\" ]; then\n    echo \"Stripping extended attributes from $TARGET_PATH\"\n    /usr/bin/xattr -cr \"$TARGET_PATH\" || true\n  fi\n  # Emit stamp to satisfy Xcode's dependency analysis\n  /usr/bin/mkdir -p \"${DERIVED_FILE_DIR}\"\n  /usr/bin/touch \"${DERIVED_FILE_DIR}/xattr_strip.stamp\"\nfi\n";
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXProject section */
 		F605CECA2DCA87EF00FDFE87 /* Project object */ = {
 			isa = PBXProject;
@@ -263,6 +241,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		F6AABBCD2DCA880000FDFE87 /* Strip Extended Attributes */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Strip Extended Attributes";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/xattr_strip.stamp",
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = /bin/sh;
+			shellScript = "set -e\n# Only run when codesigning is truly occurring (e.g., archive/install)\nif [ \"${CODE_SIGNING_ALLOWED}\" = \"YES\" ] \\\n+   && [ \"${CODE_SIGNING_REQUIRED}\" = \"YES\" ] \\\n+   && [ -n \"${EXPANDED_CODE_SIGN_IDENTITY}\" ] \\\n+   && [ \"${EXPANDED_CODE_SIGN_IDENTITY}\" != \"-\" ]; then\n  TARGET_PATH=\"${CODESIGNING_FOLDER_PATH:-${TARGET_BUILD_DIR}/${WRAPPER_NAME}}\"\n  if [ -d \"$TARGET_PATH\" ]; then\n    echo \"Stripping extended attributes from $TARGET_PATH\"\n    /usr/bin/xattr -cr \"$TARGET_PATH\" || true\n  fi\n  # Emit stamp to satisfy Xcode's dependency analysis\n  /usr/bin/mkdir -p \"${DERIVED_FILE_DIR}\"\n  /usr/bin/touch \"${DERIVED_FILE_DIR}/xattr_strip.stamp\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F605CECE2DCA87EF00FDFE87 /* Sources */ = {
