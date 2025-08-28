@@ -5,6 +5,7 @@ struct AIInsightsView: View {
     @ObservedObject var activityMonitor: ActivityMonitor
     @ObservedObject var userSettings = UserSettings.shared
     @StateObject private var analysisStorage = AnalysisStorageService.shared
+    @State private var selectedSegment: AIInsightsSegment = .analysis
     
     @State private var insights: String = ""
     @State private var isLoading: Bool = false
@@ -13,6 +14,27 @@ struct AIInsightsView: View {
     @StateObject private var chatManager = ChatManager()
     
     private let openAIService = OpenAIService()
+    
+    enum AIInsightsSegment: String, CaseIterable, Identifiable {
+        case analysis = "Analysis"
+        case toolHelp = "Tool Help"
+        
+        var id: String { rawValue }
+        
+        var icon: String {
+            switch self {
+            case .analysis: return "brain.head.profile"
+            case .toolHelp: return "questionmark.circle"
+            }
+        }
+        
+        var description: String {
+            switch self {
+            case .analysis: return "AI-powered workstyle insights"
+            case .toolHelp: return "Get help with your frequently used tools"
+            }
+        }
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -66,171 +88,221 @@ struct AIInsightsView: View {
                         }
                     }
                 }
+                
+                // Segment picker
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: DesignSystem.Spacing.lg) {
+                        ForEach(AIInsightsSegment.allCases) { segment in
+                            ModernSegmentButton(
+                                title: segment.rawValue,
+                                icon: segment.icon,
+                                description: segment.description,
+                                isSelected: selectedSegment == segment
+                            ) {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    selectedSegment = segment
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.xl)
+                }
             }
             .padding(.top, DesignSystem.Layout.pageHeaderPadding)
             .padding(.horizontal, DesignSystem.Layout.contentPadding)
             .padding(.bottom, DesignSystem.Layout.contentPadding)
             .background(DesignSystem.Colors.cardBackground)
             
-            // Two-column layout for analysis and chat
-            if !hasValidAPIKey {
-                // Setup required state - full width
+            // Content based on selected segment
+            switch selectedSegment {
+            case .analysis:
+                analysisContent()
+            case .toolHelp:
+                toolHelpContent()
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: selectedSegment)
+    }
+    
+    // MARK: - Analysis Content
+    
+    @ViewBuilder
+    private func analysisContent() -> some View {
+        // Two-column layout for analysis and chat
+        if !hasValidAPIKey {
+            // Setup required state - full width
+            ScrollView {
+                LazyVStack(spacing: DesignSystem.Spacing.xl) {
+                    SetupCard()
+                }
+                .padding(DesignSystem.Layout.contentPadding)
+            }
+        } else if activityMonitor.appUsageStats.isEmpty {
+            // No data state - full width
+            ScrollView {
+                LazyVStack(spacing: DesignSystem.Spacing.xl) {
+                    NoDataCard()
+                }
+                .padding(DesignSystem.Layout.contentPadding)
+            }
+        } else {
+            // Two-column layout
+            HStack(alignment: .top, spacing: DesignSystem.Spacing.xl) {
+                // Left column - Analysis
                 ScrollView {
                     LazyVStack(spacing: DesignSystem.Spacing.xl) {
-                        SetupCard()
-                    }
-                    .padding(DesignSystem.Layout.contentPadding)
-                }
-            } else if activityMonitor.appUsageStats.isEmpty {
-                // No data state - full width
-                ScrollView {
-                    LazyVStack(spacing: DesignSystem.Spacing.xl) {
-                        NoDataCard()
-                    }
-                    .padding(DesignSystem.Layout.contentPadding)
-                }
-            } else {
-                // Two-column layout
-                HStack(alignment: .top, spacing: DesignSystem.Spacing.xl) {
-                    // Left column - Analysis
-                    ScrollView {
-                        LazyVStack(spacing: DesignSystem.Spacing.xl) {
-                            // Analysis interface
-                            AnalysisCard(
-                                isLoading: isLoading,
-                                onAnalyze: { 
-                                    Task { await analyzeWorkstyle() }
-                                }
-                            )
-                            
-                            // Current insights or error
-                            if isLoading {
-                                LoadingCard()
-                            } else if let error = errorMessage {
-                                ErrorCard(error: error)
-                            } else if !insights.isEmpty {
-                                InsightsCard(insights: insights)
+                        // Analysis interface
+                        AnalysisCard(
+                            isLoading: isLoading,
+                            onAnalyze: { 
+                                Task { await analyzeWorkstyle() }
                             }
-                            
-                            // Analysis history - always show, let the card handle empty state
-                            AnalysisHistoryCard(history: analysisStorage.analyses)
+                        )
+                        
+                        // Current insights or error
+                        if isLoading {
+                            LoadingCard()
+                        } else if let error = errorMessage {
+                            ErrorCard(error: error)
+                        } else if !insights.isEmpty {
+                            InsightsCard(insights: insights)
                         }
-                        .padding(DesignSystem.Layout.contentPadding)
+                        
+                        // Analysis history - always show, let the card handle empty state
+                        AnalysisHistoryCard(history: analysisStorage.analyses)
                     }
-                    .frame(maxWidth: .infinity)
-                    
-                    // Right column - Chat
-                    VStack(spacing: 0) {
-                        if !insights.isEmpty && showChat {
-                            // Chat interface header
-                            HStack {
-                                Text("Ask Questions")
+                    .padding(DesignSystem.Layout.contentPadding)
+                }
+                .frame(maxWidth: .infinity)
+                
+                // Right column - Chat
+                VStack(spacing: 0) {
+                    if !insights.isEmpty && showChat {
+                        // Chat interface header
+                        HStack {
+                            Text("Ask Questions")
+                                .font(DesignSystem.Typography.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(DesignSystem.Colors.primaryText)
+                            
+                            Spacer()
+                            
+                            Button(action: { showChat = false }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(DesignSystem.Colors.tertiaryText)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding(DesignSystem.Spacing.lg)
+                        .background(DesignSystem.Colors.cardBackground)
+                        
+                        // Chat interface
+                        ChatInterface(chatManager: chatManager)
+                            .background(DesignSystem.Colors.cardBackground)
+                            .cornerRadius(DesignSystem.Layout.cornerRadius)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: DesignSystem.Layout.cornerRadius)
+                                    .stroke(DesignSystem.Colors.tertiaryText.opacity(0.2), lineWidth: 1)
+                            )
+                    } else if !insights.isEmpty {
+                        // Show chat button when analysis is done but chat is hidden
+                        VStack(spacing: DesignSystem.Spacing.lg) {
+                            Image(systemName: "bubble.left.and.bubble.right")
+                                .font(.system(size: 48))
+                                .foregroundColor(DesignSystem.Colors.tertiaryText)
+                            
+                            VStack(spacing: DesignSystem.Spacing.md) {
+                                Text("Chat About Your Analysis")
                                     .font(DesignSystem.Typography.headline)
-                                    .fontWeight(.semibold)
+                                    .fontWeight(.medium)
                                     .foregroundColor(DesignSystem.Colors.primaryText)
                                 
-                                Spacer()
+                                Text("Start a conversation to get personalized insights and recommendations about your productivity patterns.")
+                                    .font(DesignSystem.Typography.body)
+                                    .foregroundColor(DesignSystem.Colors.secondaryText)
+                                    .multilineTextAlignment(.center)
                                 
-                                Button(action: { showChat = false }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(DesignSystem.Colors.tertiaryText)
+                                Button(action: { showChat = true }) {
+                                    HStack(spacing: DesignSystem.Spacing.sm) {
+                                        Image(systemName: "bubble.left.and.bubble.right")
+                                            .font(.system(size: 16))
+                                        Text("Start Conversation")
+                                            .font(DesignSystem.Typography.body)
+                                            .fontWeight(.medium)
+                                    }
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, DesignSystem.Spacing.xl)
+                                    .padding(.vertical, DesignSystem.Spacing.md)
+                                    .background(DesignSystem.Colors.accent)
+                                    .cornerRadius(DesignSystem.Layout.cornerRadius)
                                 }
                                 .buttonStyle(.plain)
                             }
-                            .padding(DesignSystem.Spacing.lg)
-                            .background(DesignSystem.Colors.cardBackground)
-                            
-                            // Chat interface
-                            ChatInterface(chatManager: chatManager)
-                                .background(DesignSystem.Colors.cardBackground)
-                                .cornerRadius(DesignSystem.Layout.cornerRadius)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: DesignSystem.Layout.cornerRadius)
-                                        .stroke(DesignSystem.Colors.tertiaryText.opacity(0.2), lineWidth: 1)
-                                )
-                        } else if !insights.isEmpty {
-                            // Show chat button when analysis is done but chat is hidden
-                            VStack(spacing: DesignSystem.Spacing.lg) {
-                                Image(systemName: "bubble.left.and.bubble.right")
-                                    .font(.system(size: 48))
-                                    .foregroundColor(DesignSystem.Colors.tertiaryText)
-                                
-                                VStack(spacing: DesignSystem.Spacing.md) {
-                                    Text("Chat About Your Analysis")
-                                        .font(DesignSystem.Typography.headline)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(DesignSystem.Colors.primaryText)
-                                    
-                                    Text("Start a conversation to get personalized insights and recommendations about your productivity patterns.")
-                                        .font(DesignSystem.Typography.body)
-                                        .foregroundColor(DesignSystem.Colors.secondaryText)
-                                        .multilineTextAlignment(.center)
-                                    
-                                    Button(action: { showChat = true }) {
-                                        HStack(spacing: DesignSystem.Spacing.sm) {
-                                            Image(systemName: "bubble.left.and.bubble.right")
-                                                .font(.system(size: 16))
-                                            Text("Start Conversation")
-                                                .font(DesignSystem.Typography.body)
-                                                .fontWeight(.medium)
-                                        }
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, DesignSystem.Spacing.xl)
-                                        .padding(.vertical, DesignSystem.Spacing.md)
-                                        .background(DesignSystem.Colors.accent)
-                                        .cornerRadius(DesignSystem.Layout.cornerRadius)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                            .padding(DesignSystem.Spacing.xl)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(DesignSystem.Colors.cardBackground)
-                            .cornerRadius(DesignSystem.Layout.cornerRadius)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: DesignSystem.Layout.cornerRadius)
-                                    .stroke(DesignSystem.Colors.tertiaryText.opacity(0.2), lineWidth: 1)
-                            )
-                        } else {
-                            // Placeholder for when no analysis is done yet
-                            VStack(spacing: DesignSystem.Spacing.lg) {
-                                Image(systemName: "brain.head.profile")
-                                    .font(.system(size: 48))
-                                    .foregroundColor(DesignSystem.Colors.tertiaryText)
-                                
-                                VStack(spacing: DesignSystem.Spacing.md) {
-                                    Text("Waiting for Analysis")
-                                        .font(DesignSystem.Typography.headline)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(DesignSystem.Colors.primaryText)
-                                    
-                                    Text("Run an analysis to start chatting about your productivity patterns and get personalized recommendations.")
-                                        .font(DesignSystem.Typography.body)
-                                        .foregroundColor(DesignSystem.Colors.secondaryText)
-                                        .multilineTextAlignment(.center)
-                                }
-                            }
-                            .padding(DesignSystem.Spacing.xl)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(DesignSystem.Colors.cardBackground)
-                            .cornerRadius(DesignSystem.Layout.cornerRadius)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: DesignSystem.Layout.cornerRadius)
-                                    .stroke(DesignSystem.Colors.tertiaryText.opacity(0.2), lineWidth: 1)
-                            )
                         }
+                        .padding(DesignSystem.Spacing.xl)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(DesignSystem.Colors.cardBackground)
+                        .cornerRadius(DesignSystem.Layout.cornerRadius)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DesignSystem.Layout.cornerRadius)
+                                .stroke(DesignSystem.Colors.tertiaryText.opacity(0.2), lineWidth: 1)
+                        )
+                    } else {
+                        // Placeholder for when no analysis is done yet
+                        VStack(spacing: DesignSystem.Spacing.lg) {
+                            Image(systemName: "brain.head.profile")
+                                .font(.system(size: 48))
+                                .foregroundColor(DesignSystem.Colors.tertiaryText)
+                            
+                            VStack(spacing: DesignSystem.Spacing.md) {
+                                Text("Waiting for Analysis")
+                                    .font(DesignSystem.Typography.headline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(DesignSystem.Colors.primaryText)
+                                
+                                Text("Run an analysis to start chatting about your productivity patterns and get personalized recommendations.")
+                                    .font(DesignSystem.Typography.body)
+                                    .foregroundColor(DesignSystem.Colors.secondaryText)
+                                    .multilineTextAlignment(.center)
+                            }
+                        }
+                        .padding(DesignSystem.Spacing.xl)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(DesignSystem.Colors.cardBackground)
+                        .cornerRadius(DesignSystem.Layout.cornerRadius)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DesignSystem.Layout.cornerRadius)
+                                .stroke(DesignSystem.Colors.tertiaryText.opacity(0.2), lineWidth: 1)
+                        )
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.trailing, DesignSystem.Layout.contentPadding)
-                    .padding(.top, DesignSystem.Layout.contentPadding)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.trailing, DesignSystem.Layout.contentPadding)
+                .padding(.top, DesignSystem.Layout.contentPadding)
             }
         }
     }
     
+    // MARK: - Tool Help Content
+    
+    @ViewBuilder
+    private func toolHelpContent() -> some View {
+        if !hasValidAPIKey {
+            // Setup required state - full width
+            ScrollView {
+                LazyVStack(spacing: DesignSystem.Spacing.xl) {
+                    SetupCard()
+                }
+                .padding(DesignSystem.Layout.contentPadding)
+            }
+        } else {
+            ToolHelpView(activityMonitor: activityMonitor, openAIService: openAIService)
+        }
+    }
+    
     private var hasValidAPIKey: Bool {
-        !userSettings.openAIAPIKey.isEmpty
+        userSettings.hasAnyProviderKey
     }
     
     private func analyzeWorkstyle() async {
@@ -402,50 +474,55 @@ struct SetupCard: View {
     var body: some View {
         AnalyticsCard(title: "API Configuration Required", icon: "gear") {
             VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
-                Text("To use AI insights, you need to configure your OpenAI API key in the Settings tab.")
+                Text("To use AI insights, you need to configure at least one AI provider API key in the Settings tab.")
                     .font(DesignSystem.Typography.body)
                     .foregroundColor(DesignSystem.Colors.secondaryText)
                 
                 VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-                    Text("Steps to get started:")
+                    Text("Supported AI providers:")
                         .font(DesignSystem.Typography.subheadline)
                         .fontWeight(.medium)
                         .foregroundColor(DesignSystem.Colors.primaryText)
                     
                     VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                         HStack(alignment: .top, spacing: DesignSystem.Spacing.sm) {
-                            Text("1.")
+                            Text("•")
                                 .font(DesignSystem.Typography.caption)
                                 .foregroundColor(DesignSystem.Colors.accent)
                                 .fontWeight(.medium)
                             
-                            Text("Get an API key from OpenAI (platform.openai.com)")
+                            Text("OpenAI (GPT-4o, GPT-4, etc.)")
                                 .font(DesignSystem.Typography.caption)
                                 .foregroundColor(DesignSystem.Colors.secondaryText)
                         }
                         
                         HStack(alignment: .top, spacing: DesignSystem.Spacing.sm) {
-                            Text("2.")
+                            Text("•")
                                 .font(DesignSystem.Typography.caption)
                                 .foregroundColor(DesignSystem.Colors.accent)
                                 .fontWeight(.medium)
                             
-                            Text("Add your API key in Settings → AI & Personalization")
+                            Text("Claude (Anthropic)")
                                 .font(DesignSystem.Typography.caption)
                                 .foregroundColor(DesignSystem.Colors.secondaryText)
                         }
                         
                         HStack(alignment: .top, spacing: DesignSystem.Spacing.sm) {
-                            Text("3.")
+                            Text("•")
                                 .font(DesignSystem.Typography.caption)
                                 .foregroundColor(DesignSystem.Colors.accent)
                                 .fontWeight(.medium)
                             
-                            Text("Return here to analyze your usage patterns")
+                            Text("Grok (X.AI)")
                                 .font(DesignSystem.Typography.caption)
                                 .foregroundColor(DesignSystem.Colors.secondaryText)
                         }
                     }
+                    
+                    Text("Configure your preferred providers in Settings → AI & Analysis")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.accent)
+                        .padding(.top, DesignSystem.Spacing.sm)
                 }
             }
         }

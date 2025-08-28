@@ -254,7 +254,9 @@ struct AccountSettingsView: View {
 
 struct AIAnalysisSettingsView: View {
     @ObservedObject var userSettings = UserSettings.shared
-    @State private var isApiKeyVisible: Bool = false
+    @State private var isOpenAIKeyVisible: Bool = false
+    @State private var isClaudeKeyVisible: Bool = false
+    @State private var isGrokKeyVisible: Bool = false
     
     // Formatter for the hourly rate TextField
     private var currencyFormatter: NumberFormatter {
@@ -281,9 +283,52 @@ struct AIAnalysisSettingsView: View {
                     .foregroundColor(.gray)
             }
             
+            Section(header: Text("AI Provider Configuration")) {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Primary Provider:")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    Picker("Primary AI Provider", selection: $userSettings.primaryAIProvider) {
+                        ForEach(AIProvider.allCases) { provider in
+                            HStack {
+                                Image(systemName: provider.icon)
+                                Text(provider.displayName)
+                            }
+                            .tag(provider)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                    
+                    Text("Fallback Provider:")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .padding(.top, 8)
+                    
+                    Picker("Fallback AI Provider", selection: $userSettings.fallbackAIProvider) {
+                        Text("None").tag(nil as AIProvider?)
+                        ForEach(AIProvider.allCases) { provider in
+                            HStack {
+                                Image(systemName: provider.icon)
+                                Text(provider.displayName)
+                            }
+                            .tag(provider as AIProvider?)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                    
+                    Toggle("Enable Response Caching", isOn: $userSettings.enableAIGatewayCache)
+                        .toggleStyle(SwitchToggleStyle(tint: .blue))
+                    
+                    Text("Caching can reduce API costs and improve response times for similar queries.")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            }
+            
             Section(header: Text("OpenAI API Key")) {
                 HStack {
-                    if isApiKeyVisible {
+                    if isOpenAIKeyVisible {
                         TextField("Enter your OpenAI API Key", text: $userSettings.openAIAPIKey)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                     } else {
@@ -291,14 +336,64 @@ struct AIAnalysisSettingsView: View {
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                     }
                     Button {
-                        isApiKeyVisible.toggle()
+                        isOpenAIKeyVisible.toggle()
                     } label: {
-                        Image(systemName: isApiKeyVisible ? "eye.slash.fill" : "eye.fill")
+                        Image(systemName: isOpenAIKeyVisible ? "eye.slash.fill" : "eye.fill")
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
                 
-                Text("Your API key is stored locally and used to analyze your app usage for Workstyle DNA insights. Keep it secure.")
+                Text("Get your API key from platform.openai.com")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            
+            Section(header: Text("Claude API Key")) {
+                HStack {
+                    if isClaudeKeyVisible {
+                        TextField("Enter your Claude API Key", text: $userSettings.claudeAPIKey)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    } else {
+                        SecureField("Enter your Claude API Key", text: $userSettings.claudeAPIKey)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    Button {
+                        isClaudeKeyVisible.toggle()
+                    } label: {
+                        Image(systemName: isClaudeKeyVisible ? "eye.slash.fill" : "eye.fill")
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                
+                Text("Get your API key from console.anthropic.com")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            
+            Section(header: Text("Grok API Key")) {
+                HStack {
+                    if isGrokKeyVisible {
+                        TextField("Enter your Grok API Key", text: $userSettings.grokAPIKey)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    } else {
+                        SecureField("Enter your Grok API Key", text: $userSettings.grokAPIKey)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    }
+                    Button {
+                        isGrokKeyVisible.toggle()
+                    } label: {
+                        Image(systemName: isGrokKeyVisible ? "eye.slash.fill" : "eye.fill")
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                
+                Text("Get your API key from x.ai")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            
+            Section(header: Text("Privacy & Security")) {
+                Text("All API keys are stored locally on your device and are never transmitted to ConsciousMonitor servers. They are used only to communicate directly with your chosen AI providers.")
                     .font(.caption)
                     .foregroundColor(.gray)
             }

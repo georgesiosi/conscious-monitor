@@ -9,6 +9,11 @@ class UserSettings: ObservableObject {
     private enum Keys {
         static let hourlyRate = "hourlyRate"
         static let openAIAPIKey = "openAIAPIKey"
+        static let claudeAPIKey = "claudeAPIKey"
+        static let grokAPIKey = "grokAPIKey"
+        static let primaryAIProvider = "primaryAIProvider"
+        static let fallbackAIProvider = "fallbackAIProvider"
+        static let enableAIGatewayCache = "enableAIGatewayCache"
         static let csdAgentKey = "csdAgentKey"
         static let enableCSDCoaching = "enableCSDCoaching"
         static let defaultChatMode = "defaultChatMode"
@@ -41,6 +46,46 @@ class UserSettings: ObservableObject {
         didSet {
             UserDefaults.standard.set(openAIAPIKey, forKey: Keys.openAIAPIKey)
             print("UserSettings: OpenAI API key saved")
+        }
+    }
+    
+    @Published var claudeAPIKey: String {
+        didSet {
+            UserDefaults.standard.set(claudeAPIKey, forKey: Keys.claudeAPIKey)
+            print("UserSettings: Claude API key saved")
+        }
+    }
+    
+    @Published var grokAPIKey: String {
+        didSet {
+            UserDefaults.standard.set(grokAPIKey, forKey: Keys.grokAPIKey)
+            print("UserSettings: Grok API key saved")
+        }
+    }
+    
+    @Published var primaryAIProvider: AIProvider {
+        didSet {
+            UserDefaults.standard.set(primaryAIProvider.rawValue, forKey: Keys.primaryAIProvider)
+            print("UserSettings: Primary AI provider saved - \(primaryAIProvider.displayName)")
+        }
+    }
+    
+    @Published var fallbackAIProvider: AIProvider? {
+        didSet {
+            if let provider = fallbackAIProvider {
+                UserDefaults.standard.set(provider.rawValue, forKey: Keys.fallbackAIProvider)
+                print("UserSettings: Fallback AI provider saved - \(provider.displayName)")
+            } else {
+                UserDefaults.standard.removeObject(forKey: Keys.fallbackAIProvider)
+                print("UserSettings: Fallback AI provider cleared")
+            }
+        }
+    }
+    
+    @Published var enableAIGatewayCache: Bool {
+        didSet {
+            UserDefaults.standard.set(enableAIGatewayCache, forKey: Keys.enableAIGatewayCache)
+            print("UserSettings: AI Gateway cache enabled - \(enableAIGatewayCache)")
         }
     }
     
@@ -168,9 +213,29 @@ class UserSettings: ObservableObject {
         self.hourlyRate = UserDefaults.standard.object(forKey: Keys.hourlyRate) != nil ? 
             UserDefaults.standard.double(forKey: Keys.hourlyRate) : 25.0
         self.openAIAPIKey = UserDefaults.standard.string(forKey: Keys.openAIAPIKey) ?? ""
+        self.claudeAPIKey = UserDefaults.standard.string(forKey: Keys.claudeAPIKey) ?? ""
+        self.grokAPIKey = UserDefaults.standard.string(forKey: Keys.grokAPIKey) ?? ""
         self.csdAgentKey = UserDefaults.standard.string(forKey: Keys.csdAgentKey) ?? "asst_rIyzxzd2BqXyzTNpA9AWhLYw"
         self.aboutMe = UserDefaults.standard.string(forKey: Keys.aboutMe) ?? ""
         self.userGoals = UserDefaults.standard.string(forKey: Keys.userGoals) ?? ""
+        
+        // Load AI provider settings
+        if let primaryProviderString = UserDefaults.standard.string(forKey: Keys.primaryAIProvider),
+           let primaryProvider = AIProvider(rawValue: primaryProviderString) {
+            self.primaryAIProvider = primaryProvider
+        } else {
+            self.primaryAIProvider = .openAI
+        }
+        
+        if let fallbackProviderString = UserDefaults.standard.string(forKey: Keys.fallbackAIProvider),
+           let fallbackProvider = AIProvider(rawValue: fallbackProviderString) {
+            self.fallbackAIProvider = fallbackProvider
+        } else {
+            self.fallbackAIProvider = nil
+        }
+        
+        self.enableAIGatewayCache = UserDefaults.standard.object(forKey: Keys.enableAIGatewayCache) != nil ?
+            UserDefaults.standard.bool(forKey: Keys.enableAIGatewayCache) : true
         
         // Load chat settings
         if let chatModeString = UserDefaults.standard.string(forKey: Keys.defaultChatMode),
@@ -195,6 +260,11 @@ class UserSettings: ObservableObject {
         // Initialize all settings with defaults
         self.hourlyRate = 25.0
         self.openAIAPIKey = ""
+        self.claudeAPIKey = ""
+        self.grokAPIKey = ""
+        self.primaryAIProvider = .openAI
+        self.fallbackAIProvider = nil
+        self.enableAIGatewayCache = true
         self.csdAgentKey = ""
         self.enableCSDCoaching = false
         self.defaultChatMode = .auto
@@ -294,6 +364,57 @@ extension UserSettings {
         } else {
             // Still set the flag to avoid repeated attempts if nothing to migrate
             defaults.set(true, forKey: Self.legacyMigrationDoneKey)
+        }
+    }
+    
+    // MARK: - AI Gateway Helpers
+    
+    /// Get all configured API keys for AI providers
+    func getAIProviderKeys() -> [AIProvider: String] {
+        var keys: [AIProvider: String] = [:]
+        
+        if !openAIAPIKey.isEmpty {
+            keys[.openAI] = openAIAPIKey
+        }
+        if !claudeAPIKey.isEmpty {
+            keys[.claude] = claudeAPIKey
+        }
+        if !grokAPIKey.isEmpty {
+            keys[.grok] = grokAPIKey
+        }
+        
+        return keys
+    }
+    
+    /// Check if the primary AI provider has a valid API key
+    var hasPrimaryProviderKey: Bool {
+        switch primaryAIProvider {
+        case .openAI: return !openAIAPIKey.isEmpty
+        case .claude: return !claudeAPIKey.isEmpty
+        case .grok: return !grokAPIKey.isEmpty
+        }
+    }
+    
+    /// Check if any AI provider has a valid API key
+    var hasAnyProviderKey: Bool {
+        return !openAIAPIKey.isEmpty || !claudeAPIKey.isEmpty || !grokAPIKey.isEmpty
+    }
+    
+    /// Get API key for a specific provider
+    func getAPIKey(for provider: AIProvider) -> String {
+        switch provider {
+        case .openAI: return openAIAPIKey
+        case .claude: return claudeAPIKey
+        case .grok: return grokAPIKey
+        }
+    }
+    
+    /// Set API key for a specific provider
+    func setAPIKey(_ key: String, for provider: AIProvider) {
+        switch provider {
+        case .openAI: openAIAPIKey = key
+        case .claude: claudeAPIKey = key
+        case .grok: grokAPIKey = key
         }
     }
 }
