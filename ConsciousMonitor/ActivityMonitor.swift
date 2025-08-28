@@ -229,22 +229,8 @@ class ActivityMonitor: ObservableObject {
         // Setup productivity insights timer
         setupProductivityInsightsTimer()
         
-        // Defer icon loading even further to ensure app is fully responsive
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            self?.initializeIconLoading()
-        }
-    }
-    
-    /// Initialize icon loading as the final step
-    private func initializeIconLoading() {
-        // Preload common app icons and load icons for existing events
-        IconLoadingService.shared.preloadCommonIcons()
+        // Load icons for existing events synchronously
         loadIconsForExistingEvents()
-        
-        // Set up a timer to retry loading missing icons after app fully loads
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-            self?.retryIconLoadingForMissingIcons()
-        }
     }
     
     private func setupAppUsageStatsUpdates() {
@@ -450,35 +436,22 @@ class ActivityMonitor: ObservableObject {
 
         let appCategory = CategoryManager.shared.getCategory(for: bundleId)
         
-        // Create event first without icon, then load icon asynchronously
+        // Load app icon synchronously - simple and reliable
+        let appIcon = IconLoadingService.shared.loadAppIcon(for: bundleId)
+        
+        // Create event with icon already loaded
         let event = AppActivationEvent(
             id: eventId,
             timestamp: currentTime,
             appName: appName,
             bundleIdentifier: bundleId,
-            appIcon: nil, // Will be loaded asynchronously
+            appIcon: appIcon,
             category: appCategory,
             sessionId: sessionInfo.sessionId,
             sessionStartTime: sessionInfo.sessionStartTime,
             isSessionStart: sessionInfo.isSessionStart,
             sessionSwitchCount: sessionInfo.switchCount
         )
-        
-        // Load app icon asynchronously and update the event
-        IconLoadingService.shared.loadAppIconAsync(for: bundleId) { [weak self] icon in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                
-                // Update the event in EventStorageService (which will trigger binding update)
-                // This ensures both ActivityMonitor and EventStorageService stay in sync
-                self.eventStorageService.updateEventIcon(eventId: eventId, appIcon: icon, siteFavicon: nil as NSImage?)
-                
-                // Also update local array directly for immediate UI response
-                if let eventIndex = self.activationEvents.firstIndex(where: { $0.id == eventId }) {
-                    self.activationEvents[eventIndex].appIcon = icon
-                }
-            }
-        }
         
         // Add the event immediately
         // Track context switch if we have a previous app
@@ -571,46 +544,23 @@ class ActivityMonitor: ObservableObject {
         objectWillChange.send()
     }
     
-    // Enhanced icon loading that retries failed attempts
-    private func retryIconLoadingForMissingIcons() {
+    // Simple method to load missing icons (no longer needed with synchronous loading)
+    private func loadMissingIcons() {
         let eventsWithoutIcons = activationEvents.filter { $0.appIcon == nil }
         guard !eventsWithoutIcons.isEmpty else { return }
         
-        print("ActivityMonitor: Retrying icon loading for \(eventsWithoutIcons.count) events without icons...")
+        print("ActivityMonitor: Loading \(eventsWithoutIcons.count) missing icons...")
         
-        IconLoadingService.shared.loadIconsForEvents(eventsWithoutIcons) { [weak self] updatedEvents in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                
-                // Prepare batch icon updates for EventStorageService
-                var iconUpdates: [(eventId: UUID, appIcon: NSImage?, siteFavicon: NSImage?)] = []
-                
-                for updatedEvent in updatedEvents {
-                    if updatedEvent.appIcon != nil || updatedEvent.siteFavicon != nil {
-                        iconUpdates.append((
-                            eventId: updatedEvent.id,
-                            appIcon: updatedEvent.appIcon,
-                            siteFavicon: updatedEvent.siteFavicon
-                        ))
-                    }
-                    
-                    // Also update local array directly for immediate UI response
-                    if let index = self.activationEvents.firstIndex(where: { $0.id == updatedEvent.id }) {
-                        self.activationEvents[index] = updatedEvent
-                    }
-                }
-                
-                // Update EventStorageService with batch icon updates
-                if !iconUpdates.isEmpty {
-                    self.eventStorageService.updateEventIcons(iconUpdates)
-                }
-                
-                let stillMissing = self.activationEvents.filter { $0.appIcon == nil }.count
-                if stillMissing > 0 {
-                    print("ActivityMonitor: \(stillMissing) events still missing icons after retry")
-                }
+        let updatedEvents = IconLoadingService.shared.loadIconsForEvents(eventsWithoutIcons)
+        
+        // Update local array
+        for updatedEvent in updatedEvents {
+            if let index = activationEvents.firstIndex(where: { $0.id == updatedEvent.id }) {
+                activationEvents[index] = updatedEvent
             }
         }
+        
+        print("ActivityMonitor: Loaded \(updatedEvents.filter { $0.appIcon != nil }.count) missing icons")
     }
 
     // Method to reload all data from disk (useful for debugging and ensuring data consistency)
@@ -619,42 +569,39 @@ class ActivityMonitor: ObservableObject {
         eventStorageService.reloadEvents() // Use EventStorageService reload
         loadContextSwitches()
         
-        // Also reload icons after a short delay to ensure events are loaded first
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            self?.loadIconsForExistingEvents()
-        }
+        // Load icons immediately for reloaded events
+        loadIconsForExistingEvents()
     }
     
     // Method to force reload all icons (useful for debugging)
     public func forceReloadAllIcons() {
         print("ActivityMonitor: Force reloading all icons...")
-        IconLoadingService.shared.forceReloadAllIcons(for: activationEvents) { [weak self] updatedEvents in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                
-                // Prepare batch icon updates for EventStorageService
-                var iconUpdates: [(eventId: UUID, appIcon: NSImage?, siteFavicon: NSImage?)] = []
-                
-                for updatedEvent in updatedEvents {
-                    iconUpdates.append((
-                        eventId: updatedEvent.id,
-                        appIcon: updatedEvent.appIcon,
-                        siteFavicon: updatedEvent.siteFavicon
-                    ))
-                }
-                
-                // Update EventStorageService with batch icon updates
-                if !iconUpdates.isEmpty {
-                    self.eventStorageService.updateEventIcons(iconUpdates)
-                }
-                
-                // Update local array directly for immediate UI response
-                self.activationEvents = updatedEvents
-                
-                let iconCount = updatedEvents.filter { $0.appIcon != nil }.count
-                print("ActivityMonitor: Force reload completed. \(iconCount)/\(updatedEvents.count) events have icons")
-            }
+        
+        // Clear icon cache and reload all icons
+        IconLoadingService.shared.clearCache()
+        let updatedEvents = IconLoadingService.shared.loadIconsForEvents(activationEvents)
+        
+        // Prepare batch icon updates for EventStorageService
+        var iconUpdates: [(eventId: UUID, appIcon: NSImage?, siteFavicon: NSImage?)] = []
+        
+        for updatedEvent in updatedEvents {
+            iconUpdates.append((
+                eventId: updatedEvent.id,
+                appIcon: updatedEvent.appIcon,
+                siteFavicon: updatedEvent.siteFavicon
+            ))
         }
+        
+        // Update EventStorageService with batch icon updates
+        if !iconUpdates.isEmpty {
+            eventStorageService.updateEventIcons(iconUpdates)
+        }
+        
+        // Update local array directly for immediate UI response
+        activationEvents = updatedEvents
+        
+        let iconCount = updatedEvents.filter { $0.appIcon != nil }.count
+        print("ActivityMonitor: Force reload completed. \(iconCount)/\(updatedEvents.count) events have icons")
     }
     
     // Method to get icon loading statistics
@@ -689,43 +636,31 @@ class ActivityMonitor: ObservableObject {
         
         print("ActivityMonitor: Loading icons for \(activationEvents.count) existing events...")
         
-        // Get unique bundle identifiers from events
-        let uniqueBundleIds = Set(activationEvents.compactMap { $0.bundleIdentifier })
+        // Load icons synchronously for all events that don't have them
+        let updatedEvents = IconLoadingService.shared.loadIconsForEvents(activationEvents)
         
-        // First, preload icons for all unique bundle IDs to populate the cache
-        IconLoadingService.shared.preloadIcons(for: Array(uniqueBundleIds)) { [weak self] in
-            guard let self = self else { return }
-            
-            // Then load icons for all events
-            IconLoadingService.shared.loadIconsForEvents(self.activationEvents) { [weak self] updatedEvents in
-                DispatchQueue.main.async {
-                    guard let self = self else { return }
-                    
-                    // Prepare batch icon updates for EventStorageService
-                    var iconUpdates: [(eventId: UUID, appIcon: NSImage?, siteFavicon: NSImage?)] = []
-                    
-                    for updatedEvent in updatedEvents {
-                        if updatedEvent.appIcon != nil || updatedEvent.siteFavicon != nil {
-                            iconUpdates.append((
-                                eventId: updatedEvent.id,
-                                appIcon: updatedEvent.appIcon,
-                                siteFavicon: updatedEvent.siteFavicon
-                            ))
-                        }
-                    }
-                    
-                    // Update EventStorageService with batch icon updates
-                    if !iconUpdates.isEmpty {
-                        self.eventStorageService.updateEventIcons(iconUpdates)
-                    }
-                    
-                    // Update local array directly for immediate UI response
-                    self.activationEvents = updatedEvents
-                    
-                    print("ActivityMonitor: Completed loading icons. Events with icons: \(updatedEvents.filter { $0.appIcon != nil }.count)/\(updatedEvents.count)")
-                }
+        // Prepare batch icon updates for EventStorageService
+        var iconUpdates: [(eventId: UUID, appIcon: NSImage?, siteFavicon: NSImage?)] = []
+        
+        for updatedEvent in updatedEvents {
+            if updatedEvent.appIcon != nil || updatedEvent.siteFavicon != nil {
+                iconUpdates.append((
+                    eventId: updatedEvent.id,
+                    appIcon: updatedEvent.appIcon,
+                    siteFavicon: updatedEvent.siteFavicon
+                ))
             }
         }
+        
+        // Update EventStorageService with batch icon updates
+        if !iconUpdates.isEmpty {
+            eventStorageService.updateEventIcons(iconUpdates)
+        }
+        
+        // Update local array directly for immediate UI response
+        activationEvents = updatedEvents
+        
+        print("ActivityMonitor: Completed loading icons. Events with icons: \(updatedEvents.filter { $0.appIcon != nil }.count)/\(updatedEvents.count)")
     }
     
     // MARK: - Data Management & Cleanup
