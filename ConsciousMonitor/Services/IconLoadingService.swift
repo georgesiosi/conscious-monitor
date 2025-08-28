@@ -189,12 +189,15 @@ class IconLoadingService {
                     dispatchGroup.enter()
                     pendingFaviconUpdates += 1
                     
+                    // Capture the event ID at closure creation time to avoid race condition
+                    let eventId = updatedEvents[i].id
+                    
                     // Load favicon asynchronously
                     FaviconFetcher.shared.fetchFavicon(forDomain: domain) { favicon in
                         defer { dispatchGroup.leave() }
                         
-                        // Find the event and update it
-                        if let index = updatedEvents.firstIndex(where: { $0.id == updatedEvents[i].id }) {
+                        // Find the event and update it using captured eventId
+                        if let index = updatedEvents.firstIndex(where: { $0.id == eventId }) {
                             updatedEvents[index].siteFavicon = favicon
                         }
                     }
